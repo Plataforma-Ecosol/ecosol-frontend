@@ -6,7 +6,30 @@ import type { NextConfig } from "next";
  * local, o Django em `localhost:8001`. O `next/image` recusa host externo que
  * não esteja declarado aqui, então esta lista é pré-requisito, não ajuste.
  */
-const emDesenvolvimento = process.env.NODE_ENV === "development";
+
+/** O host de onde as imagens virão, do ponto de vista do navegador. */
+const API_PUBLICA =
+  process.env.API_URL_PUBLICA ?? process.env.API_URL ?? "http://localhost:8001";
+
+/**
+ * O backend está num endereço da própria máquina ou da rede do Docker?
+ *
+ * O Next 16 bloqueia por padrão a otimização de imagem vinda de endereço
+ * local, como defesa contra SSRF — o sintoma é um `400 "url" parameter is not
+ * allowed` e a imagem quebrada. Liberar é necessário enquanto as imagens vêm
+ * do Django local.
+ *
+ * A condição olha PARA ONDE as imagens apontam, e não para `NODE_ENV`. Amarrar
+ * ao modo de execução parece equivalente e não é: `npm run start` e o container
+ * do compose rodam em modo produção contra o backend local — exatamente os
+ * cenários em que a equipe confere o visual antes de subir — e a permissão
+ * ficaria desligada onde é mais necessária. Do jeito atual ela se desliga
+ * sozinha no dia em que `API_URL_PUBLICA` passar a ser o domínio real, que é
+ * quando o risco de SSRF passa a existir de verdade.
+ */
+const IMAGENS_VEM_DE_HOST_LOCAL = /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\]|backend)(:|\/|$)/i.test(
+  API_PUBLICA,
+);
 
 const nextConfig: NextConfig = {
   images: {
@@ -19,14 +42,7 @@ const nextConfig: NextConfig = {
       { protocol: "http", hostname: "backend", port: "8001", pathname: "/media/**" },
     ],
 
-    // O Next 16 passou a bloquear a otimização de imagem vinda de IP local,
-    // como defesa contra SSRF. Isso derruba justamente o caso do ambiente de
-    // desenvolvimento, em que as imagens vêm de `localhost:8001`.
-    //
-    // Ligado SÓ em desenvolvimento, e de propósito: em produção as imagens vêm
-    // do Supabase por HTTPS, e manter a permissão ligada lá reabriria o risco
-    // que o padrão do Next fecha, sem nenhum ganho.
-    dangerouslyAllowLocalIP: emDesenvolvimento,
+    dangerouslyAllowLocalIP: IMAGENS_VEM_DE_HOST_LOCAL,
   },
 };
 
