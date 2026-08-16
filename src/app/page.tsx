@@ -1,7 +1,8 @@
 import Link from "next/link";
 
 import { CartaoColetivo } from "@/componentes/CartaoColetivo";
-import { listarColetivos } from "@/lib/api";
+import { CartaoEvento } from "@/componentes/CartaoEvento";
+import { listarColetivos, listarEventos } from "@/lib/api";
 
 /**
  * Página inicial — apresentação da rede e porta de entrada.
@@ -14,8 +15,15 @@ export default async function Home() {
   // Os seis primeiros em ordem alfabética. Não há campo "destaque" no
   // cadastro, e inventar um critério de destaque no frontend seria decidir
   // sozinho quem a rede promove — isso é decisão da equipe, no Admin.
-  const coletivos = await listarColetivos({ ordering: "nome" });
+  // As duas chamadas em paralelo: encadeadas com `await` seguido de `await`, a
+  // home esperaria a soma das duas em vez da mais lenta.
+  const [coletivos, eventos] = await Promise.all([
+    listarColetivos({ ordering: "nome" }),
+    listarEventos({ periodo: "proximos", ordering: "data_inicio" }),
+  ]);
+
   const destaques = coletivos.results.slice(0, 6);
+  const proximos = eventos.results.slice(0, 3);
 
   return (
     <div className="space-y-12">
@@ -49,6 +57,25 @@ export default async function Home() {
             {destaques.map((coletivo) => (
               <li key={coletivo.id}>
                 <CartaoColetivo coletivo={coletivo} parametros={{}} />
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {proximos.length > 0 && (
+        <section className="space-y-4">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <h2 className="text-xl font-semibold">Próximos eventos</h2>
+            <Link href="/eventos" className="text-emerald-800 hover:underline">
+              Ver a agenda →
+            </Link>
+          </div>
+
+          <ul className="space-y-4">
+            {proximos.map((evento) => (
+              <li key={evento.id}>
+                <CartaoEvento evento={evento} />
               </li>
             ))}
           </ul>
