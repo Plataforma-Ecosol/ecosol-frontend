@@ -13,6 +13,7 @@
  * plataforma) e o backend segue sem precisar de CORS configurado.
  */
 import { notFound } from "next/navigation";
+import { connection } from "next/server";
 
 import type { Coletivo, Evento, Pagina, PontoDeInteresse } from "@/tipos/api";
 
@@ -97,6 +98,22 @@ async function buscar<T>(
   parametros: Parametros,
   revalidacao: number,
 ): Promise<T> {
+  // Interrompe a pré-renderização: daqui para baixo, só roda quando houver
+  // requisição de verdade. Sem isto o `next build` tenta gerar as páginas
+  // estáticas consultando a API, e o build inteiro falha com `ECONNREFUSED`
+  // quando ela não está no ar — o que acontece SEMPRE no CI, que não sobe
+  // backend, e aconteceria num deploy feito durante uma instabilidade.
+  //
+  // Fica aqui, e não em cada página, pelo mesmo motivo que a guarda de storage
+  // do backend é `autouse`: proteção que cada arquivo precisa lembrar de pedir
+  // falha na primeira página que esquecer.
+  //
+  // O custo é a página passar a ser renderizada sob demanda em vez de no
+  // build. A velocidade continua vindo do cache de `fetch` abaixo, que
+  // `connection()` não afeta — diferente de `force-dynamic`, que desligaria o
+  // cache junto.
+  await connection();
+
   const url = montarUrl(caminho, parametros);
   const resposta = await fetch(url, { next: { revalidate: revalidacao } });
 
