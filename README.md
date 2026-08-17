@@ -33,11 +33,26 @@ npm run dev
 
 A aplicação sobe em <http://localhost:3000>.
 
-Para subir o backend, a partir de `apps/ecosol-backend/infra`:
+Para subir o backend do qual esta aplicação depende, a partir de
+`apps/ecosol-backend/infra`:
 
 ```bash
 docker compose up --build
 ```
+
+### Ou os três serviços de uma vez, em Docker
+
+O repositório `ecosol-infra` sobe Postgres, Django e este frontend com um
+comando — útil para conferir a integração como ela roda de verdade, mas sem
+recarga ao editar (o código vai para dentro da imagem):
+
+```bash
+cd ../../ecosol-infra   # ao lado de apps/, ver o README de lá
+docker compose up --build
+```
+
+Para o dia a dia de frontend, prefira `npm run dev` acima: é o único caminho
+com Fast Refresh.
 
 ## Variáveis de ambiente
 
