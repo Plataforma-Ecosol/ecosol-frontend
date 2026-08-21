@@ -36,6 +36,7 @@ A fatia foi executada, e a execução mostrou que partes deste documento estavam
 - **Seção 6** — `sitemap.ts` e `robots.ts` não estavam atribuídos a nenhum PR, e por isso ficaram de fora. Agora são o PR R.
 - **Seção 8** — o padrão de teste que funcionou na prática.
 - **Seção 10.6** — o filtro por categoria é clique no cartão, e isso é decisão, não contorno.
+- **Seção 10.4** — a orquestração Docker deixou de ser questão em aberto: é o repositório `ecosol-infra`.
 
 ---
 
@@ -540,19 +541,18 @@ Registrada na Seção 4.4. O widget não pode ser SSR (Leaflet lê `window`), ma
 
 O v4.1 (2.4) prevê Nominatim para converter endereço em coordenadas **no momento do cadastro**. Isso é trabalho do back-office, não do frontend público: hoje a equipe digita latitude e longitude no Admin, e o mapa apenas lê. Automatizar a geocodificação é melhoria do Admin, em fatia própria.
 
-### 10.4. Onde vive o `docker-compose` — a decidir com o Jean
+### 10.4. Onde vive o `docker-compose` — decidido: repositório próprio
 
-O v4.1 (2.5) prevê os três serviços orquestrados juntos. Hoje o `docker-compose.yml` vive **dentro de `apps/ecosol-backend`**, e o frontend é outro repositório: um compose não consegue construir a partir de um contexto fora da sua árvore.
+O v4.1 (2.5) prevê os três serviços orquestrados juntos, e o compose vivia **dentro de `apps/ecosol-backend`**, que não alcança o frontend por ser outro repositório.
 
-Três saídas possíveis, e **nenhuma deve ser escolhida sem decisão explícita**:
+**Decisão tomada:** um terceiro repositório, `ecosol-infra`, com o compose dos três serviços — a saída mais fiel ao v4.1, ao custo de um repositório a mais para manter. Já existe, público, com `main` e `staging` protegidas como as dos outros dois.
 
-| Saída | Custo |
-|---|---|
-| Cada repo com seu compose; o do frontend só sobe o Next e aponta para o backend em `localhost` | Simples, mas deixa de ser "um comando sobe tudo" |
-| Um terceiro repositório de infraestrutura, com o compose dos três | Fiel ao v4.1; um repo a mais para manter |
-| Compose do backend ganha o serviço do frontend, com contexto por `../ecosol-frontend` | Um comando sobe tudo, mas amarra os dois repos a um layout de pastas |
+Duas coisas que a execução dele acrescentou, e que valem para quem for mexer:
 
-Esta é a **única questão em aberto** do PRD. O PR L entrega o `Dockerfile` do frontend em qualquer cenário; a orquestração conjunta espera a decisão.
+- **O banco e o backend não são redeclarados lá.** Vêm por `include` do compose que já existe em `ecosol-backend`. Duas cópias das mesmas definições foi exatamente como a pasta `infra/` anterior envelheceu em silêncio, até virar o compose sem `DJANGO_IGNORE_DOTENV`.
+- **Sobrescrever um serviço vindo de `include` não é portátil.** Funciona em versões recentes do Compose e falha em outras com `services.backend conflicts with imported resource` — foi o que o runner do CI recusou. Ajuste em serviço incluído mora no compose de origem dele.
+
+O terceiro repositório **não elimina sozinho** o acoplamento de pastas: o compose ainda precisa alcançar as duas árvores para construir as imagens. Por isso os caminhos são variáveis (`CAMINHO_BACKEND`, `CAMINHO_FRONTEND`), e a migração para imagens publicadas num registry — quando houver deploy real — é trocar `build:` por `image:`.
 
 ### 10.5. Sem emendas ao PRD Técnico v4.1
 
@@ -613,4 +613,4 @@ Isto **não é contorno provisório**, é o desenho oficial. Registrado para que
 
 ---
 
-*Fatia derivada da Seção 11, item 5 do PRD Técnico v4.1. Encerra o MVP em código. Não altera decisões de arquitetura e não registra emendas; deixa em aberto uma única decisão (Seção 10.4, orquestração Docker dos dois repositórios) e aponta duas defasagens do v4.1 a corrigir na próxima revisão (Seção 10.5).*
+*Fatia derivada da Seção 11, item 5 do PRD Técnico v4.1. Encerra o MVP em código. Não altera decisões de arquitetura e não registra emendas ao v4.1. A decisão que a v1.0 deixava em aberto — a orquestração Docker — foi tomada (Seção 10.4): o repositório `ecosol-infra`. Restam apontadas duas defasagens do v4.1 a corrigir na próxima revisão dele (Seção 10.5) e um PR desta fatia ainda não executado (PR R, Seção 6).*
