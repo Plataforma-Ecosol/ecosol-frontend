@@ -6,12 +6,37 @@
 | | |
 |---|---|
 | **Documento** | PRD de Implementação — Fatia 5: Frontend público em Next.js |
-| **Versão** | 1.0 |
+| **Versão** | 1.1 |
 | **Deriva de** | PRD Técnico v4.1 (Seções 2.1, 2.4, 5.1, 7, 8.1; Seção 11, **item 5**) |
 | **Escopo** | Aplicação Next.js pública e somente leitura: home, listagem de coletivos, perfil por slug, agenda de eventos e mapa de pontos de interesse — com renderização no servidor, tipagem do contrato da API e regressão de LGPD na camada de exibição |
 | **Fora de escopo** | Qualquer escrita, login, área administrativa, autocadastro, geocodificação por Nominatim, deploy em produção, e2e com navegador real |
 | **Repositório** | `apps/ecosol-frontend` (dentro da umbrella `ecosol-fullstack`) |
-| **Status** | Pronto para desenvolvimento — a ser executado via Claude Code |
+| **Status** | Executado (PRs L–Q). Esta v1.1 corrige o que a execução mostrou estar errado no documento; falta o PR R (Seção 6). |
+
+---
+
+## O que mudou na versão 1.1
+
+A fatia foi executada, e a execução mostrou que partes deste documento estavam erradas. Esta subversão **não muda escopo nem decisões**: corrige o que quebraria o build de quem seguisse o texto, e registra o que se aprendeu.
+
+**Corrigido porque quebrava build ou CI:**
+
+- **Seção 4.4** — `dynamic(..., { ssr: false })` não pode ser chamado de um Server Component no Next 16. Precisa de um invólucro `"use client"`.
+- **Seções 4.3 e 5** — faltava `await connection()` na camada de acesso. Sem ele o `next build` tenta pré-renderizar consultando a API e falha com `ECONNREFUSED` — e o CI não sobe backend, então nunca passaria.
+- **Seção 4.5** — faltava o bloqueio de IP local do Next 16 (`dangerouslyAllowLocalIP`), que derruba as imagens do backend local.
+
+**Corrigido porque enganava:**
+
+- **Seções 5 e 5.1** — o backend responde `301`, mas o `permanentRedirect` do Next responde `308`. O texto usava `301` para os dois.
+- **Seção 4.4** — o pino do mapa é `divIcon` com SVG embutido, e não um `L.Icon` com arquivos em `public/`.
+- **Seção 2** — o scaffold entrega um tema escuro pela metade, e "fora de escopo" exige **removê-lo**, não ignorá-lo.
+
+**Registrado:**
+
+- **Seção 6** — `sitemap.ts` e `robots.ts` não estavam atribuídos a nenhum PR, e por isso ficaram de fora. Agora são o PR R.
+- **Seção 8** — o padrão de teste que funcionou na prática.
+- **Seção 10.6** — o filtro por categoria é clique no cartão, e isso é decisão, não contorno.
+- **Seção 10.4** — a orquestração Docker deixou de ser questão em aberto: é o repositório `ecosol-infra`.
 
 ---
 
@@ -72,6 +97,8 @@ A fatia está concluída quando **todos** os itens abaixo forem verdadeiros:
 
 > **O que NÃO faz parte do "pronto":** deploy na Vercel, domínio, analytics, tema escuro, animações, biblioteca de componentes e testes end-to-end com navegador real. O v4.1 pede explicitamente que se evite sobre-engenharia.
 
+> **Atenção: "tema escuro fora de escopo" exige trabalho.** Lê-se como "não há nada a fazer", e é o contrário. O `create-next-app` **entrega** um bloco `prefers-color-scheme: dark` no `globals.css`, junto de uma regra em `body` escrita **fora de `@layer`** — e regra sem camada vence qualquer utilitário do Tailwind, independente de especificidade. O resultado: o `bg-stone-50` do layout nunca vale, e em quem usa o sistema em modo escuro o fundo vira `#0a0a0a` enquanto o texto continua na cor escolhida para fundo claro. Medido no navegador: fundo `rgb(10,10,10)` com texto cinza escuro, ilegível. **Apagar o bloco e a regra faz parte do PR L.** Meio tema escuro é pior do que nenhum — e o defeito não aparece em teste nem em verificação de rota, só ao abrir a página.
+
 ---
 
 ## 3. O contrato que o frontend consome
@@ -107,6 +134,8 @@ Fonte da verdade: seção "API pública" do `README.md` do backend. Reproduzido 
 | Pontos | `q`, `tipo` (`orgao_es`/`loja_fisica`/`feira_arariboia`), `ordering` (`nome`, `-nome`) |
 
 Valor inválido responde `400` — o frontend precisa tratar, não deixar estourar.
+
+**Não há endpoint de catálogo.** A API não expõe a lista de categorias nem a de bairros: `categoria` recebe um id e `bairro` um texto, mas não existe `/api/categorias/` de onde tirar as opções. Isso decide a forma do filtro na tela — ver a decisão 10.6.
 
 ### 3.4. As três armadilhas do contrato
 
@@ -220,27 +249,52 @@ Responsabilidades:
 - Montar a URL a partir de `API_URL` e dos parâmetros de consulta.
 - Traduzir status em comportamento: `404` → `notFound()` do Next; `400` → erro tratado com mensagem em português; `5xx` → erro que o `error.tsx` captura.
 - Aplicar `revalidate` (Seção 9).
+- **Chamar `await connection()` antes de qualquer requisição** (abaixo).
 - Nada mais. **Sem cache próprio, sem retry, sem interceptador.**
 
 **Todo acesso é server-side.** As funções deste módulo rodam em Server Components. O navegador nunca fala com o Django. Isso não é detalhe de implementação — é o que mantém o requisito de SEO de pé (a página chega pronta) e o que torna **desnecessário configurar CORS no backend** (ver decisão 10.1).
 
+**`await connection()` é obrigatório, e mora aqui.** Sem ele, o `next build` trata as páginas como estáticas e tenta pré-renderizá-las **consultando a API durante o build**. Quando a API não está no ar, o build inteiro falha com `ECONNREFUSED` — e ela nunca está no ar no CI, que não sobe backend. O mesmo aconteceria num deploy feito durante uma instabilidade do backend.
+
+`connection()` interrompe a pré-renderização: daí para baixo, o código só roda quando existe requisição de verdade.
+
+**Não confundir com `export const dynamic = "force-dynamic"`.** Ele também tornaria a página dinâmica, mas desligaria junto o cache de `fetch` — e é desse cache que vem a velocidade da Seção 9. `connection()` não o afeta.
+
+Fica na camada de acesso, e não em cada página, pelo mesmo motivo que a guarda de storage do backend é `autouse`: proteção que cada arquivo precisa lembrar de pedir falha na primeira página que esquecer.
+
 ### 4.4. O mapa, e por que ele é a única ilha de cliente
 
-Leaflet toca `window` **no momento do import**. Importá-lo de um Server Component quebra o build com `ReferenceError: window is not defined`. A montagem correta:
+Leaflet toca `window` **no momento do import**. Importá-lo de um Server Component quebra o build com `ReferenceError: window is not defined`. A saída é `dynamic(..., { ssr: false })` — mas ele **não pode ser chamado da página**.
+
+**No Next 16, `ssr: false` é proibido em Server Component.** A documentação é explícita: *"`ssr: false` is not allowed with `next/dynamic` in Server Components. Please move it into a Client Component."* O `next build` falha.
+
+São necessários, portanto, **dois** arquivos: um invólucro que já seja de cliente e faça o `dynamic`, e o mapa em si.
 
 ```tsx
-// O componente do mapa entra só no cliente. `ssr: false` é obrigatório —
-// sem ele o build quebra, porque o Leaflet lê `window` ao ser importado.
+// src/componentes/MapaCliente.tsx
+"use client";
+
+import dynamic from "next/dynamic";
+
+// `ssr: false` só é aceito dentro de um componente que JÁ é de cliente.
 const Mapa = dynamic(() => import("@/componentes/Mapa"), {
   ssr: false,
-  loading: () => <div className="h-96 animate-pulse bg-stone-200" />,
+  // Reserva a altura do mapa: sem isso o conteúdo abaixo salta quando ele
+  // termina de carregar, e quem estiver lendo a lista perde o lugar.
+  loading: () => <div className="h-[28rem] animate-pulse bg-stone-100" />,
 });
+
+export function MapaCliente({ pontos }: { pontos: PontoDeInteresse[] }) {
+  return <Mapa pontos={pontos} />;
+}
 ```
+
+A página `/mapa` importa `MapaCliente` e **continua sendo Server Component**. O invólucro existe por exigência do framework, não por gosto de indireção — vale dizer isso no próprio arquivo, senão alguém o remove por parecer supérfluo.
 
 Dois cuidados que economizam uma tarde:
 
 - **Importar o CSS do Leaflet** (`leaflet/dist/leaflet.css`), senão o mapa aparece como tiles empilhados fora de lugar.
-- **Corrigir o ícone padrão do marcador.** O Leaflet resolve o caminho da imagem do pino de um jeito que os empacotadores quebram, e o sintoma é um mapa correto com marcadores invisíveis. Declarar um `L.Icon` explícito com os arquivos servidos de `public/`.
+- **Trocar o ícone padrão do marcador por um `divIcon`.** O Leaflet resolve o caminho do PNG do pino de um jeito que os empacotadores quebram, e o sintoma é um mapa correto com **marcadores invisíveis**, sem erro no console. Um `divIcon` com SVG embutido não depende de arquivo nenhum, então não há o que quebrar — e de quebra permite colorir o pino por `tipo`. (Servir os PNGs de `public/` também resolveria, mas o projeto não tem essa pasta e ela voltaria só para isso.)
 
 **A página `/mapa` continua sendo renderizada no servidor.** Só o widget é cliente. A página entrega, no HTML, a lista textual de todos os pontos — nome, tipo, endereço e vínculo. Isso atende três coisas de uma vez: o buscador indexa, quem está em conexão ruim ou com JavaScript desligado ainda consegue a informação, e o leitor de tela tem conteúdo real em vez de um `<div>` mudo.
 
@@ -260,20 +314,36 @@ Onde cada caso cai:
 
 Além disso, `next.config.ts` precisa declarar os hosts permitidos em `images.remotePatterns` (o domínio do Supabase e `localhost:8001`), senão o `next/image` recusa a URL externa.
 
+**E declarar o host não basta.** O Next 16 passou a **bloquear a otimização de imagem vinda de endereço local**, como defesa contra SSRF. O sintoma é `400 "url" parameter is not allowed` e a imagem quebrada — mesmo com o host em `remotePatterns`. Liberar exige `images.dangerouslyAllowLocalIP`.
+
+A condição de liberação deve olhar **para onde as imagens apontam**, e não para `NODE_ENV`:
+
+```ts
+const API_PUBLICA =
+  process.env.API_URL_PUBLICA ?? process.env.API_URL ?? "http://localhost:8001";
+
+const IMAGENS_VEM_DE_HOST_LOCAL =
+  /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\]|backend)(:|\/|$)/i.test(API_PUBLICA);
+```
+
+Amarrar a `NODE_ENV` parece equivalente e **não é**: `npm run start` e o container do compose rodam em modo produção contra o backend local — exatamente os cenários em que a equipe confere o visual antes de subir — e a permissão ficaria desligada onde é mais necessária. Do jeito acima ela se desliga sozinha quando `API_URL_PUBLICA` passa a ser o domínio real, que é quando o risco de SSRF passa a existir de verdade.
+
 ---
 
 ## 5. As páginas
 
 | Rota | Consome | Renderização | Conteúdo |
 |---|---|---|---|
-| `/` | listagens, poucos itens | SSR + ISR | Apresentação da rede, coletivos em destaque, próximos eventos, chamada para o mapa |
-| `/coletivos` | `GET /api/coletivos/` | SSR | Busca, filtro por categoria e bairro, paginação — tudo na URL |
-| `/coletivos/[slug]` | `GET /api/coletivos/{slug}/` | SSR + ISR | Perfil público; `404`; **canônico via 301** |
-| `/eventos` | `GET /api/eventos/?periodo=proximos` | SSR | Agenda; alternar próximos/passados |
-| `/eventos/[slug]` | `GET /api/eventos/{slug}/` | SSR + ISR | Detalhe com galeria |
-| `/mapa` | `GET /api/pontos-de-interesse/?page_size=100` | SSR + ilha cliente | Mapa Leaflet + lista textual |
+| `/` | listagens, poucos itens | Sob demanda | Apresentação da rede, coletivos em destaque, próximos eventos, chamada para o mapa |
+| `/coletivos` | `GET /api/coletivos/` | Sob demanda | Busca, filtro por categoria e bairro, paginação — tudo na URL |
+| `/coletivos/[slug]` | `GET /api/coletivos/{slug}/` | Sob demanda | Perfil público; `404`; **canônico via `308`** |
+| `/eventos` | `GET /api/eventos/?periodo=proximos` | Sob demanda | Agenda; alternar próximos/passados |
+| `/eventos/[slug]` | `GET /api/eventos/{slug}/` | Sob demanda | Detalhe com galeria |
+| `/mapa` | `GET /api/pontos-de-interesse/?page_size=100` | Sob demanda + ilha cliente | Mapa Leaflet + lista textual |
 
-### 5.1. O perfil do coletivo e o `301`
+**Nenhuma página é pré-renderizada no build**, e isso é consequência direta do `await connection()` da Seção 4.3 — é o que permite o `next build` passar sem backend no ar. Todas continuam renderizadas **no servidor**; a velocidade vem do cache de `fetch` (Seção 9), e não de HTML gerado no build. Para o requisito de indexação o efeito é o mesmo: a página chega pronta ao buscador.
+
+### 5.1. O perfil do coletivo: o backend responde `301`, o frontend responde `308`
 
 O backend responde `301` quando o slug pedido é antigo. O `fetch` **segue redirecionamentos por padrão**, então a página renderizaria certo — mas na **URL errada**. Do ponto de vista de um buscador, isso é conteúdo duplicado em dois endereços, que é exatamente o que o mecanismo de `301` existia para evitar. O trabalho do backend seria desperdiçado no último metro.
 
@@ -290,6 +360,10 @@ if (coletivo.slug !== slug) {
 ```
 
 Comparar o corpo, em vez de inspecionar o status com `redirect: "manual"`, é deliberado: não depende da semântica de modo de redirecionamento do `fetch`, que difere entre servidor e navegador, e falha de forma visível se algum dia o backend mudar a mecânica.
+
+**O status que o visitante recebe é `308`, não `301`.** O `permanentRedirect` do Next responde `308`, e não há como pedir `301` sem escrever a resposta à mão — o que não compensa. Os dois são redirecionamento permanente e os buscadores os tratam igual para consolidar autoridade; o `308` ainda preserva o método HTTP.
+
+Os dois números convivem, em camadas diferentes: **`301` é o da API** (o backend, ao responder o slug antigo) e **`308` é o do site** (o Next, ao mandar o navegador para a URL canônica). Onde este documento disser `301` sem qualificar, trata-se do backend.
 
 ### 5.2. O que o perfil mostra — e o que não pode mostrar
 
@@ -315,10 +389,13 @@ Continua a numeração das fatias anteriores, que terminaram no PR K. Executar *
 |---|---|---|---|
 | **L** | `chore/scaffold-frontend` | `create-next-app` (TS + Tailwind + App Router), `src/tipos/api.ts`, `src/lib/api.ts`, layout base, `README.md`, CI do repositório, Dockerfile | Sim — tudo depende |
 | **M** | `feat/listagem-de-coletivos` | `/` e `/coletivos` com busca, filtros e paginação na URL | Depende de L |
-| **N** | `feat/perfil-do-coletivo` | `/coletivos/[slug]`, `404`, canônico via `301`, metadados de compartilhamento | Depende de M |
+| **N** | `feat/perfil-do-coletivo` | `/coletivos/[slug]`, `404`, canônico via `308`, metadados de compartilhamento | Depende de M |
 | **O** | `feat/agenda-de-eventos` | `/eventos` e `/eventos/[slug]` com galeria | Depende de L |
 | **P** | `feat/mapa-de-pontos` | `/mapa` com Leaflet + lista textual | Depende de L |
 | **Q** | `test/frontend-regressao-lgpd` | Suíte da Seção 8, bloqueante no CI | Depende de N, O e P |
+| **R** | `feat/sitemap-e-robots` | `sitemap.ts` e `robots.ts` do App Router (Seção 9) | Depende de Q |
+
+> **Por que o PR R existe:** na v1.0 deste documento, `sitemap.ts` e `robots.ts` apareciam na Seção 9 e no checklist da Seção 11, mas **nenhum PR os assumia**. O resultado previsível: a fatia foi dada por concluída sem eles. Item pedido em duas seções e atribuído a nenhuma é item que não acontece.
 
 > **Por que a regressão de LGPD é PR próprio:** mesma razão da fatia 2 (PR F). O revisor recebe um PR pequeno em que a única pergunta é *"este teste realmente prova a promessa?"*, sem competir com a atenção gasta em revisar telas.
 
@@ -336,7 +413,7 @@ apps/ecosol-frontend/
 │   │   ├── page.tsx              # home
 │   │   ├── coletivos/
 │   │   │   ├── page.tsx          # listagem
-│   │   │   └── [slug]/page.tsx   # perfil (301 → canônico)
+│   │   │   └── [slug]/page.tsx   # perfil (301 da API → 308 canônico)
 │   │   ├── eventos/
 │   │   │   ├── page.tsx
 │   │   │   └── [slug]/page.tsx
@@ -387,6 +464,8 @@ Quando `data_fim` é `null`, mostrar só o início. Quando existe e cai no mesmo
 
 Vitest + React Testing Library. Poucos testes, cada um provando algo que quebraria de verdade.
 
+> **O padrão que funcionou, e que vale repetir nas próximas fatias:** o teste de exposição **nasce junto com a tela que ele protege**, no mesmo PR — não no PR final. Na execução desta fatia, quatro dos seis comportamentos da Seção 8.3 já tinham teste quando o PR Q chegou, e ele ficou reduzido ao que sobrava (as duas verificações de nível de página, que são as mais fáceis de esquecer). Planejar uma suíte final grande superdimensiona o último PR e, pior, adia a proteção para depois de o código já estar escrito — quando ela deixa de influenciar o desenho.
+
 ### 8.1. Contrato — os tipos são teste
 
 `tsc --noEmit` no CI é a primeira linha de defesa: com `strict: true`, acessar `coletivo.telefone` sem checar não compila. Isso cobre sozinho a classe inteira de erro da Seção 3.4.
@@ -429,15 +508,15 @@ O `next build` no CI não é redundante: ele é o único passo que pega o erro d
 
 **Desempenho** (requisito de 500 ms, Seção 7 do v4.1) — a parte cara é a chamada à API, já otimizada no backend. No frontend:
 
-- `revalidate` de 60 s nas listagens e 300 s nos detalhes. O cadastro muda algumas vezes por semana; revalidar a cada requisição desperdiçaria a renderização no servidor.
+- `revalidate` de 60 s nas listagens e 300 s nos detalhes, **no cache de `fetch`**. Como nenhuma página é pré-renderizada (Seção 4.3), é daí que vem a velocidade. O cadastro muda algumas vezes por semana; consultar a API a cada visita seria desperdício.
 - `next/image` com `sizes` correto — a galeria de evento é o único lugar com imagem pesada.
 - Nenhuma fonte externa: usar a pilha de fontes do sistema. Uma fonte do Google custa mais no 3G de um smartphone básico do que entrega em estética.
 
 **SEO** (o propósito do projeto):
 
 - `generateMetadata` por página, com `title`, `description` e Open Graph.
-- `sitemap.ts` e `robots.ts` do App Router, listando coletivos e eventos ativos.
-- URLs por slug, e o `301` honrado conforme a Seção 5.1.
+- `sitemap.ts` e `robots.ts` do App Router, listando coletivos e eventos ativos — **PR R da Seção 6**.
+- URLs por slug, e o `301` da API honrado com um `308` do site, conforme a Seção 5.1.
 - `<link rel="canonical">` no perfil.
 
 **Acessibilidade** — não é item de luxo aqui: o público inclui pessoas em conexão ruim e aparelho modesto. HTML semântico, contraste suficiente, foco visível, `alt` real nas imagens (a `legenda` da imagem do evento serve), e a lista textual do mapa da Seção 4.4.
@@ -462,24 +541,32 @@ Registrada na Seção 4.4. O widget não pode ser SSR (Leaflet lê `window`), ma
 
 O v4.1 (2.4) prevê Nominatim para converter endereço em coordenadas **no momento do cadastro**. Isso é trabalho do back-office, não do frontend público: hoje a equipe digita latitude e longitude no Admin, e o mapa apenas lê. Automatizar a geocodificação é melhoria do Admin, em fatia própria.
 
-### 10.4. Onde vive o `docker-compose` — a decidir com o Jean
+### 10.4. Onde vive o `docker-compose` — decidido: repositório próprio
 
-O v4.1 (2.5) prevê os três serviços orquestrados juntos. Hoje o `docker-compose.yml` vive **dentro de `apps/ecosol-backend`**, e o frontend é outro repositório: um compose não consegue construir a partir de um contexto fora da sua árvore.
+O v4.1 (2.5) prevê os três serviços orquestrados juntos, e o compose vivia **dentro de `apps/ecosol-backend`**, que não alcança o frontend por ser outro repositório.
 
-Três saídas possíveis, e **nenhuma deve ser escolhida sem decisão explícita**:
+**Decisão tomada:** um terceiro repositório, `ecosol-infra`, com o compose dos três serviços — a saída mais fiel ao v4.1, ao custo de um repositório a mais para manter. Já existe, público, com `main` e `staging` protegidas como as dos outros dois.
 
-| Saída | Custo |
-|---|---|
-| Cada repo com seu compose; o do frontend só sobe o Next e aponta para o backend em `localhost` | Simples, mas deixa de ser "um comando sobe tudo" |
-| Um terceiro repositório de infraestrutura, com o compose dos três | Fiel ao v4.1; um repo a mais para manter |
-| Compose do backend ganha o serviço do frontend, com contexto por `../ecosol-frontend` | Um comando sobe tudo, mas amarra os dois repos a um layout de pastas |
+Duas coisas que a execução dele acrescentou, e que valem para quem for mexer:
 
-Esta é a **única questão em aberto** do PRD. O PR L entrega o `Dockerfile` do frontend em qualquer cenário; a orquestração conjunta espera a decisão.
+- **O banco e o backend não são redeclarados lá.** Vêm por `include` do compose que já existe em `ecosol-backend`. Duas cópias das mesmas definições foi exatamente como a pasta `infra/` anterior envelheceu em silêncio, até virar o compose sem `DJANGO_IGNORE_DOTENV`.
+- **Sobrescrever um serviço vindo de `include` não é portátil.** Funciona em versões recentes do Compose e falha em outras com `services.backend conflicts with imported resource` — foi o que o runner do CI recusou. Ajuste em serviço incluído mora no compose de origem dele.
+
+O terceiro repositório **não elimina sozinho** o acoplamento de pastas: o compose ainda precisa alcançar as duas árvores para construir as imagens. Por isso os caminhos são variáveis (`CAMINHO_BACKEND`, `CAMINHO_FRONTEND`), e a migração para imagens publicadas num registry — quando houver deploy real — é trocar `build:` por `image:`.
 
 ### 10.5. Sem emendas ao PRD Técnico v4.1
 
 Nenhuma decisão aqui contraria o v4.1. Fica registrada, porém, uma **defasagem do documento** a corrigir na próxima revisão: a Seção 9 do v4.1 documenta apenas o contrato de Coletivos, enquanto Eventos e Pontos de Interesse já têm contrato real (README do backend), e a Seção 12 ainda descreve o item 6 como "próximo" quando ele foi entregue.
 
+### 10.6. O filtro por categoria é clique no cartão, não lista suspensa
+
+**Decisão:** categoria e bairro se aplicam clicando no próprio cartão de um coletivo, e os filtros em vigor aparecem como rótulos removíveis no topo da listagem.
+
+**Motivo:** a API não expõe catálogo (Seção 3.3), e a decisão de **não criar** `/api/categorias/` foi tomada. Sem esse endpoint não há de onde tirar as opções de uma lista suspensa. E um campo de texto livre para bairro seria pior do que parece: o filtro compara o valor inteiro (`iexact`), então "icarai" sem acento, ou "Centro Niterói", devolvem vazio sem explicar por quê. Clicando, o valor está correto por construção.
+
+**Os rótulos removíveis não são enfeite.** Sem eles, a única pista de que a listagem está recortada seria a barra de endereço — e quem chega por um link compartilhado não viu o clique acontecer: veria uma lista incompleta achando que é a rede inteira.
+
+Isto **não é contorno provisório**, é o desenho oficial. Registrado para que a próxima pessoa a ler o documento não proponha a lista suspensa de novo.
 ---
 
 ## 11. Checklist de aceite (para marcar no PR)
@@ -487,19 +574,22 @@ Nenhuma decisão aqui contraria o v4.1. Fica registrada, porém, uma **defasagem
 - [ ] Scaffold Next.js com App Router, TypeScript `strict` e Tailwind.
 - [ ] `src/tipos/api.ts` com os três tipos; contatos como `?: string`, **nunca** `| null`.
 - [ ] `src/lib/api.ts` é a única porta para o backend; nenhum `fetch` solto em componente.
+- [ ] `await connection()` na camada de acesso — e `next build` passa com o backend **desligado**.
 - [ ] Nenhuma chamada à API a partir do navegador.
 - [ ] As seis rotas da Seção 5 respondem com HTML já preenchido (conferido sem JavaScript).
 - [ ] Busca, filtros e paginação refletidos na URL.
 - [ ] Slug inexistente ou inativo → `notFound()`.
-- [ ] Slug antigo → `permanentRedirect` para o canônico (a barra de endereço muda).
+- [ ] Slug antigo → `permanentRedirect` para o canônico, respondendo `308` (a barra de endereço muda).
 - [ ] Contato sem consentimento não deixa rótulo, `undefined` nem ícone órfão.
 - [ ] Ponto com `coletivo: null` não exibe bloco de vínculo nem aviso.
-- [ ] Mapa com `dynamic(..., { ssr: false })`, CSS do Leaflet e ícone de marcador corrigido.
+- [ ] Mapa com `dynamic(..., { ssr: false })` **dentro de um invólucro `"use client"`**, CSS do Leaflet importado e pino em `divIcon`.
 - [ ] `/mapa` traz a lista textual dos pontos renderizada no servidor.
 - [ ] Datas formatadas em `America/Sao_Paulo`, sem erro de hidratação.
-- [ ] `images.remotePatterns` cobrindo Supabase e `localhost:8001`.
-- [ ] `generateMetadata`, `sitemap.ts`, `robots.ts` e `canonical` no perfil.
-- [ ] Mobile first, sem rolagem horizontal.
+- [ ] `images.remotePatterns` cobrindo Supabase e `localhost:8001`, e `dangerouslyAllowLocalIP` condicionado ao host da API (não a `NODE_ENV`).
+- [ ] `generateMetadata` e `canonical` no perfil.
+- [ ] `sitemap.ts` e `robots.ts` (PR R — não faz parte de L–Q).
+- [ ] Bloco `prefers-color-scheme: dark` e a regra `body` do scaffold **removidos** do `globals.css`.
+- [ ] Mobile first, sem rolagem horizontal, conferido também em modo escuro do sistema.
 - [ ] Suíte da Seção 8 passando e bloqueante no CI.
 - [ ] `lint`, `tsc --noEmit`, `vitest run` e `next build` verdes.
 - [ ] `README.md` do frontend com execução, variáveis e relação com a API.
@@ -523,4 +613,4 @@ Nenhuma decisão aqui contraria o v4.1. Fica registrada, porém, uma **defasagem
 
 ---
 
-*Fatia derivada da Seção 11, item 5 do PRD Técnico v4.1. Encerra o MVP em código. Não altera decisões de arquitetura e não registra emendas; deixa em aberto uma única decisão (Seção 10.4, orquestração Docker dos dois repositórios) e aponta duas defasagens do v4.1 a corrigir na próxima revisão (Seção 10.5).*
+*Fatia derivada da Seção 11, item 5 do PRD Técnico v4.1. Encerra o MVP em código. Não altera decisões de arquitetura e não registra emendas ao v4.1. A decisão que a v1.0 deixava em aberto — a orquestração Docker — foi tomada (Seção 10.4): o repositório `ecosol-infra`. Restam apontadas duas defasagens do v4.1 a corrigir na próxima revisão dele (Seção 10.5) e um PR desta fatia ainda não executado (PR R, Seção 6).*
