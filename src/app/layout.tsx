@@ -9,13 +9,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { ENDERECO_DO_SITE } from "@/lib/site";
+
 import "./globals.css";
 
 export const metadata: Metadata = {
   // Base para transformar em absolutos os endereços relativos de `canonical` e
   // Open Graph. Sem ela o Next avisa no build e o WhatsApp recebe um endereço
   // relativo, que não resolve para nada — a prévia do link some.
-  metadataBase: new URL(process.env.SITE_URL ?? "http://localhost:3000"),
+  metadataBase: new URL(ENDERECO_DO_SITE),
   title: {
     default: "Rede de Economia Solidária de Niterói",
     template: "%s · Rede de Economia Solidária de Niterói",

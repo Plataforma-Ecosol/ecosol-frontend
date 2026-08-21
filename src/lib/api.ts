@@ -146,6 +146,8 @@ export type FiltrosDeColetivo = {
   bairro?: string;
   ordering?: string;
   page?: string | number;
+  /** Só o `sitemap.ts` usa: as telas ficam no padrão de 20 por página. */
+  page_size?: number;
 };
 
 export function listarColetivos(filtros: FiltrosDeColetivo = {}) {
@@ -169,6 +171,8 @@ export type FiltrosDeEvento = {
   bairro?: string;
   ordering?: string;
   page?: string | number;
+  /** Só o `sitemap.ts` usa: as telas ficam no padrão de 20 por página. */
+  page_size?: number;
 };
 
 export function listarEventos(filtros: FiltrosDeEvento = {}) {
