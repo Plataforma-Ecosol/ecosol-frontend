@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main, staging]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Lint (eslint)
+        run: npm run lint
+
+      - name: Checar tipos (tsc)
+        run: npm run typecheck
+
+      - name: Testes (vitest)
+        run: npm test
+
+      # Não é redundante com os passos acima: o build é o ÚNICO que executa o
+      # empacotamento de verdade, e por isso o único que pega o erro clássico
+      # de `window is not defined` — o Leaflet importado fora de uma ilha de
+      # cliente. Esse erro não aparece em `next dev` nem em teste unitário.
+      - name: Build (next)
+        run: npm run build
+        env:
+          API_URL: http://localhost:8001
+          API_URL_PUBLICA: http://localhost:8001
