@@ -60,6 +60,8 @@ com Fast Refresh.
 |---|---|---|
 | `API_URL` | `http://localhost:8001` | Onde o **servidor** do Next encontra a API |
 | `API_URL_PUBLICA` | igual a `API_URL` | Onde o **navegador** encontra a API — só para reescrever URL de imagem |
+| `SITE_URL` | `http://localhost:3000` | Endereço público do site — entra no `canonical`, no Open Graph, no `sitemap.xml` e no `robots.txt` |
+| `SITE_INDEXAVEL` | `true` | `false` **só em homologação**: `robots.txt` com `Disallow: /` e `noindex, nofollow` em todas as páginas. Qualquer outro valor conta como indexável |
 
 Não existe variável `NEXT_PUBLIC_*`, e isso é decisão de arquitetura (abaixo).
 
