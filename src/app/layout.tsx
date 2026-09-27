@@ -9,7 +9,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { ENDERECO_DO_SITE } from "@/lib/site";
+import { ENDERECO_DO_SITE, SITE_INDEXAVEL } from "@/lib/site";
 
 import "./globals.css";
 
@@ -31,6 +31,11 @@ export const metadata: Metadata = {
     locale: "pt_BR",
     type: "website",
   },
+  // `noindex, nofollow` em todas as páginas da homologação. É a camada que vale
+  // para quem chega por link externo, que o `robots.txt` não cobre. Nenhuma
+  // página define `robots` no próprio `generateMetadata`; se alguma passar a
+  // definir, sobrescreve este valor — e precisa respeitar `SITE_INDEXAVEL`.
+  robots: SITE_INDEXAVEL ? undefined : { index: false, follow: false },
 };
 
 const NAVEGACAO = [
