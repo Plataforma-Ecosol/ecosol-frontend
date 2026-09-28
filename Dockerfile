@@ -22,8 +22,12 @@ COPY . .
 # consultam a API. Em produção elas vêm do ambiente do orquestrador.
 ARG API_URL=http://backend:8001
 ARG API_URL_PUBLICA=http://localhost:8001
+# Sem valor padrão: vazio aqui é lido por `site.ts` como "não definida", e o
+# endereço da área da equipe cai no derivado de API_URL_PUBLICA.
+ARG ADMIN_URL
 ENV API_URL=$API_URL
 ENV API_URL_PUBLICA=$API_URL_PUBLICA
+ENV ADMIN_URL=$ADMIN_URL
 
 RUN npm run build
 
