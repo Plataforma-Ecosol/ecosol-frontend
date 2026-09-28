@@ -12,6 +12,35 @@ export const ENDERECO_DO_SITE = (
   process.env.SITE_URL ?? "http://localhost:3000"
 ).replace(/\/+$/, "");
 
+/** Garante que o endereço termine em `/admin/`, sem duplicar a barra nem o `admin`. */
+function comSufixoAdmin(url: string): string {
+  const semBarraNoFim = url.replace(/\/+$/, "");
+  const comAdmin = /\/admin$/.test(semBarraNoFim)
+    ? semBarraNoFim
+    : `${semBarraNoFim}/admin`;
+  return `${comAdmin}/`;
+}
+
+/**
+ * Endereço do Django Admin, para o link discreto "Área da equipe" no rodapé.
+ *
+ * O backend fica em outro domínio, então não há como montar esse endereço a
+ * partir de `ENDERECO_DO_SITE`. `ADMIN_URL` existe para permitir um endereço
+ * de admin diferente do da API pública (um subdomínio próprio, por exemplo);
+ * na ausência dela, o padrão é `/admin/` a partir de `API_URL_PUBLICA` — a
+ * mesma variável que já resolve o endereço de mídia alcançável pelo
+ * navegador, com a mesma cadeia de fallback dela (`API_URL`, depois
+ * `localhost:8001`) — porque cobre o compose e o local sem exigir
+ * configuração nova. String vazia (o valor de um `ARG` do Docker sem
+ * `--build-arg`) conta como "não definida".
+ */
+export const ENDERECO_DA_AREA_DA_EQUIPE = comSufixoAdmin(
+  process.env.ADMIN_URL ||
+    process.env.API_URL_PUBLICA ||
+    process.env.API_URL ||
+    "http://localhost:8001",
+);
+
 /** Monta um endereço absoluto a partir de um caminho interno. */
 export function urlAbsoluta(caminho: string): string {
   return `${ENDERECO_DO_SITE}${caminho.startsWith("/") ? caminho : `/${caminho}`}`;
