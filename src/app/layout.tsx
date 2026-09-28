@@ -9,7 +9,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { ENDERECO_DO_SITE, SITE_INDEXAVEL } from "@/lib/site";
+import {
+  ENDERECO_DA_AREA_DA_EQUIPE,
+  ENDERECO_DO_SITE,
+  SITE_INDEXAVEL,
+} from "@/lib/site";
 
 import "./globals.css";
 
@@ -91,6 +95,18 @@ export default function RootLayout({
               Singer) · ITES / IFRJ Campus Niterói
             </p>
             <p className="mt-1">Software livre, sob licença GPLv3.</p>
+            {/* Só quem já sabe o que procura encontra: nada em destaque,
+                nenhum formulário de login aqui — o cadastro vive no Django
+                Admin, em outro domínio. */}
+            <p className="mt-1">
+              <a
+                href={ENDERECO_DA_AREA_DA_EQUIPE}
+                rel="nofollow"
+                className="text-stone-600 underline hover:text-emerald-800"
+              >
+                Área da equipe
+              </a>
+            </p>
           </div>
         </footer>
       </body>
