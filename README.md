@@ -62,6 +62,7 @@ com Fast Refresh.
 | `API_URL_PUBLICA` | igual a `API_URL` | Onde o **navegador** encontra a API — só para reescrever URL de imagem |
 | `SITE_URL` | `http://localhost:3000` | Endereço público do site — entra no `canonical`, no Open Graph, no `sitemap.xml` e no `robots.txt` |
 | `SITE_INDEXAVEL` | `true` | `false` **só em homologação**: `robots.txt` com `Disallow: /` e `noindex, nofollow` em todas as páginas. Qualquer outro valor conta como indexável |
+| `ADMIN_URL` | `${API_URL_PUBLICA}/admin/` | Endereço do Django Admin, para o link "Área da equipe" no rodapé. Opcional — defina só se o admin viver num endereço diferente do da API pública |
 
 Não existe variável `NEXT_PUBLIC_*`, e isso é decisão de arquitetura (abaixo).
 
