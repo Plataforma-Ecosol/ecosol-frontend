@@ -94,11 +94,38 @@
  */
 
 /**
- * Pilha de fontes do sistema, sem nenhuma fonte externa.
+ * Fonte dos títulos (PRD da base visual, seção 2).
+ *
+ * `--font-bricolage` é declarada pelo `next/font` no `<html>` (ver
+ * `layout.tsx`); o token aponta para ela, e trocar de fonte é trocar só a
+ * variável. `inline` porque o valor depende de uma variável que só existe em
+ * tempo de execução — sem ele o Tailwind resolveria a referência cedo demais.
+ * Gera a classe `font-titulo`, usada nos títulos de cartão.
+ */
+@theme inline {
+  --font-titulo: var(--font-bricolage), system-ui, sans-serif;
+}
+
+/*
+ * Dentro de `@layer base`, e não solta: fora de camada a regra venceria
+ * qualquer classe do Tailwind no título (o mesmo problema descrito acima
+ * sobre o `body`).
+ */
+@layer base {
+  h1,
+  h2 {
+    font-family: var(--font-titulo);
+  }
+}
+
+/**
+ * Pilha de fontes do sistema para o texto corrido.
  *
  * O PRD pede isto explicitamente (Seção 9): baixar uma fonte custa mais no 3G
  * de um smartphone básico — que é o aparelho de boa parte do público — do que
- * entrega em estética. Estas já estão na máquina de quem acessa.
+ * entrega em estética. Estas já estão na máquina de quem acessa. A única
+ * exceção são os títulos, acima: um peso só, subset latino, servido pelo
+ * próprio site.
  */
 body {
   font-family:

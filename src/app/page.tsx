@@ -28,7 +28,7 @@ export default async function Home() {
   return (
     <div className="space-y-12">
       <section className="max-w-prose">
-        <h1 className="text-3xl font-semibold text-azul">
+        <h1 className="text-3xl font-bold text-azul">
           Rede de Economia Solidária de Niterói
         </h1>
 
@@ -47,7 +47,7 @@ export default async function Home() {
       {destaques.length > 0 && (
         <section className="space-y-4">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <h2 className="text-xl font-semibold">Coletivos da rede</h2>
+            <h2 className="text-xl font-bold">Coletivos da rede</h2>
             <Link href="/coletivos" className="text-azul hover:underline">
               Ver todos ({coletivos.count}) →
             </Link>
@@ -66,7 +66,7 @@ export default async function Home() {
       {proximos.length > 0 && (
         <section className="space-y-4">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <h2 className="text-xl font-semibold">Próximos eventos</h2>
+            <h2 className="text-xl font-bold">Próximos eventos</h2>
             <Link href="/eventos" className="text-azul hover:underline">
               Ver a agenda →
             </Link>

@@ -57,7 +57,7 @@ export default async function Eventos({
   return (
     <section className="space-y-6">
       <header className="space-y-2">
-        <h1 className="text-2xl font-semibold text-azul">Agenda da rede</h1>
+        <h1 className="text-2xl font-bold text-azul">Agenda da rede</h1>
         <p className="text-texto/75">
           {resultado.count === 0
             ? periodo === "proximos"

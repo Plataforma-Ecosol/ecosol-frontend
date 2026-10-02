@@ -50,7 +50,7 @@ export default async function Coletivos({
   return (
     <section className="space-y-6">
       <header className="space-y-2">
-        <h1 className="text-2xl font-semibold text-azul">Coletivos da rede</h1>
+        <h1 className="text-2xl font-bold text-azul">Coletivos da rede</h1>
         <p className="text-texto/75">
           {resultado.count === 0
             ? "Nenhum coletivo encontrado."

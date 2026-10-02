@@ -56,7 +56,7 @@ export default async function DetalheDoEvento({ params }: Props) {
           </time>
         </p>
 
-        <h1 className="text-3xl font-semibold text-azul">{evento.titulo}</h1>
+        <h1 className="text-3xl font-bold text-azul">{evento.titulo}</h1>
 
         {(evento.local || evento.bairro) && (
           <p className="text-texto/75">
@@ -86,7 +86,7 @@ export default async function DetalheDoEvento({ params }: Props) {
 
       {evento.imagens.length > 0 && (
         <section className="space-y-3">
-          <h2 className="text-lg font-medium">Imagens de divulgação</h2>
+          <h2 className="text-lg font-bold">Imagens de divulgação</h2>
 
           <ul className="grid gap-4 sm:grid-cols-2">
             {evento.imagens.map((imagem) => (

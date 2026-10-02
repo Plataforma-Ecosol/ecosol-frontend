@@ -29,7 +29,7 @@ export function PerfilDoColetivo({ coletivo }: { coletivo: Coletivo }) {
   return (
     <article className="space-y-8">
       <header className="space-y-3">
-        <h1 className="text-3xl font-semibold text-azul">{coletivo.nome}</h1>
+        <h1 className="text-3xl font-bold text-azul">{coletivo.nome}</h1>
 
         {coletivo.bairro && (
           <p className="text-texto/75">
@@ -68,7 +68,7 @@ export function PerfilDoColetivo({ coletivo }: { coletivo: Coletivo }) {
 
       {temContato && (
         <section className="rounded border border-dourado/60 bg-white p-4">
-          <h2 className="text-lg font-medium">Contato</h2>
+          <h2 className="text-lg font-bold">Contato</h2>
 
           <dl className="mt-3 space-y-2">
             {coletivo.telefone && (

@@ -58,7 +58,7 @@ export default async function Mapa({
   return (
     <section className="space-y-6">
       <header className="space-y-2">
-        <h1 className="text-2xl font-semibold text-azul">
+        <h1 className="text-2xl font-bold text-azul">
           Mapa da economia solidária
         </h1>
         <p className="text-texto/75">
@@ -112,7 +112,7 @@ export default async function Mapa({
       )}
 
       <section className="space-y-3">
-        <h2 className="text-lg font-medium">Todos os pontos</h2>
+        <h2 className="text-lg font-bold">Todos os pontos</h2>
         <ListaDePontos pontos={pontos} />
       </section>
     </section>

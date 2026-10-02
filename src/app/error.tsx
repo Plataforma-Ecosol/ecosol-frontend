@@ -15,7 +15,7 @@
 export default function Erro({ reset }: { error: Error; reset: () => void }) {
   return (
     <section className="mx-auto max-w-prose py-12 text-center">
-      <h1 className="text-2xl font-semibold">Não foi possível carregar esta página</h1>
+      <h1 className="text-2xl font-bold">Não foi possível carregar esta página</h1>
       <p className="mt-4 text-texto/75">
         Pode ter sido uma instabilidade momentânea. Tente de novo em alguns
         instantes.

@@ -17,7 +17,7 @@ export function CartaoEvento({ evento }: { evento: Evento }) {
         <time dateTime={evento.data_inicio}>{formatarDataCurta(evento.data_inicio)}</time>
       </p>
 
-      <h3 className="mt-1 text-lg font-medium">
+      <h3 className="mt-1 font-titulo text-lg font-bold">
         <Link href={`/eventos/${evento.slug}`} className="text-azul hover:underline">
           {evento.titulo}
         </Link>

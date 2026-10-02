@@ -7,6 +7,7 @@
  * Solidária de Niterói" sem que ninguém repita o sufixo à mão.
  */
 import type { Metadata } from "next";
+import { Bricolage_Grotesque } from "next/font/google";
 import Link from "next/link";
 
 import {
@@ -16,6 +17,21 @@ import {
 } from "@/lib/site";
 
 import "./globals.css";
+
+/**
+ * A fonte dos títulos — só deles; o texto corrido segue na fonte do sistema.
+ *
+ * Um peso só (700) e subset latino. O `next/font` baixa o arquivo durante o
+ * `next build` e o serve pelo próprio site: nenhum pedido ao Google parte do
+ * navegador. Por isso o build (CI, Docker, Vercel) precisa de acesso a
+ * `fonts.googleapis.com`; sem rede ali, trocar por `next/font/local`.
+ */
+const fonteDosTitulos = Bricolage_Grotesque({
+  weight: "700",
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-bricolage",
+});
 
 export const metadata: Metadata = {
   // Base para transformar em absolutos os endereços relativos de `canonical` e
@@ -54,7 +70,7 @@ export default function RootLayout({
   return (
     // `lang="pt-BR"` não é detalhe: é o que faz o leitor de tela pronunciar a
     // página em português e o navegador oferecer a tradução correta.
-    <html lang="pt-BR">
+    <html lang="pt-BR" className={fonteDosTitulos.variable}>
       <body className="flex min-h-screen flex-col bg-bege text-texto antialiased">
         {/* Primeiro elemento focável da página: quem navega por teclado pula o
             menu em vez de percorrê-lo a cada troca de página. */}

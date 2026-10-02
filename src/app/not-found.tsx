@@ -12,7 +12,7 @@ import Link from "next/link";
 export default function NaoEncontrado() {
   return (
     <section className="mx-auto max-w-prose py-12 text-center">
-      <h1 className="text-2xl font-semibold">Página não encontrada</h1>
+      <h1 className="text-2xl font-bold">Página não encontrada</h1>
       <p className="mt-4 text-texto/75">
         O endereço que você abriu não existe ou foi alterado.
       </p>

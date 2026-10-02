@@ -26,7 +26,7 @@ export function CartaoColetivo({
 }) {
   return (
     <article className="rounded border border-dourado/60 bg-white p-4">
-      <h2 className="text-lg font-medium">
+      <h2 className="text-lg font-bold">
         <Link
           href={`/coletivos/${coletivo.slug}`}
           className="text-azul hover:underline"
