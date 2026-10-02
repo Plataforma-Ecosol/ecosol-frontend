@@ -10,6 +10,7 @@ import type { Metadata } from "next";
 import { Bricolage_Grotesque } from "next/font/google";
 import Link from "next/link";
 
+import { NavegacaoPrincipal } from "@/componentes/NavegacaoPrincipal";
 import {
   ENDERECO_DA_AREA_DA_EQUIPE,
   ENDERECO_DO_SITE,
@@ -58,12 +59,6 @@ export const metadata: Metadata = {
   robots: SITE_INDEXAVEL ? undefined : { index: false, follow: false },
 };
 
-const NAVEGACAO = [
-  { href: "/coletivos", rotulo: "Coletivos" },
-  { href: "/eventos", rotulo: "Agenda" },
-  { href: "/mapa", rotulo: "Mapa" },
-];
-
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
@@ -82,21 +77,15 @@ export default function RootLayout({
         </a>
 
         <header className="border-b-2 border-dourado bg-azul text-bege">
-          <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-4">
-            <Link href="/" className="text-lg font-semibold text-bege">
+          {/* Uma linha só, também no celular: nome à esquerda, menu à direita.
+              O nome pode quebrar dentro do próprio espaço; o menu, não. O
+              `flex-wrap` só entra em jogo sem JavaScript, quando os links do
+              `<noscript>` descem para a linha de baixo. */}
+          <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-x-6 gap-y-2 px-4 py-3">
+            <Link href="/" className="min-w-0 text-base font-semibold text-bege sm:text-lg">
               Economia Solidária <span className="text-bege/80">Niterói</span>
             </Link>
-            <nav aria-label="Principal" className="flex gap-4 text-sm">
-              {NAVEGACAO.map(({ href, rotulo }) => (
-                <Link
-                  key={href}
-                  href={href}
-                  className="hover:underline"
-                >
-                  {rotulo}
-                </Link>
-              ))}
-            </nav>
+            <NavegacaoPrincipal />
           </div>
         </header>
 
