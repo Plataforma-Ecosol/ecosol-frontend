@@ -28,16 +28,16 @@ export default async function Home() {
   return (
     <div className="space-y-12">
       <section className="max-w-prose">
-        <h1 className="text-3xl font-semibold text-emerald-900">
+        <h1 className="text-3xl font-semibold text-azul">
           Rede de Economia Solidária de Niterói
         </h1>
 
-        <p className="mt-4 text-lg text-stone-700">
+        <p className="mt-4 text-lg text-texto/85">
           Coletivos, feiras, lojas e a agenda da economia solidária da cidade,
           reunidos em um só lugar.
         </p>
 
-        <p className="mt-4 text-stone-600">
+        <p className="mt-4 text-texto/75">
           Esta plataforma é mantida pelo Centro Público de Referência em
           Economia Solidária (Casa Paul Singer), em parceria com o ITES e o IFRJ
           Campus Niterói.
@@ -48,7 +48,7 @@ export default async function Home() {
         <section className="space-y-4">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <h2 className="text-xl font-semibold">Coletivos da rede</h2>
-            <Link href="/coletivos" className="text-emerald-800 hover:underline">
+            <Link href="/coletivos" className="text-azul hover:underline">
               Ver todos ({coletivos.count}) →
             </Link>
           </div>
@@ -67,7 +67,7 @@ export default async function Home() {
         <section className="space-y-4">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <h2 className="text-xl font-semibold">Próximos eventos</h2>
-            <Link href="/eventos" className="text-emerald-800 hover:underline">
+            <Link href="/eventos" className="text-azul hover:underline">
               Ver a agenda →
             </Link>
           </div>
@@ -98,10 +98,10 @@ export default async function Home() {
           <Link
             key={href}
             href={href}
-            className="rounded border border-stone-200 bg-white p-4 hover:border-emerald-700"
+            className="rounded border border-dourado/60 bg-white p-4 hover:border-azul"
           >
-            <span className="block font-medium text-emerald-800">{titulo}</span>
-            <span className="mt-1 block text-sm text-stone-600">{texto}</span>
+            <span className="block font-medium text-azul">{titulo}</span>
+            <span className="mt-1 block text-sm text-texto/75">{texto}</span>
           </Link>
         ))}
       </nav>

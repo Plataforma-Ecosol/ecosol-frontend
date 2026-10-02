@@ -25,18 +25,18 @@ export function CartaoColetivo({
   parametros: ParametrosDaRota;
 }) {
   return (
-    <article className="rounded border border-stone-200 bg-white p-4">
+    <article className="rounded border border-dourado/60 bg-white p-4">
       <h2 className="text-lg font-medium">
         <Link
           href={`/coletivos/${coletivo.slug}`}
-          className="text-emerald-800 hover:underline"
+          className="text-azul hover:underline"
         >
           {coletivo.nome}
         </Link>
       </h2>
 
       {coletivo.bairro && (
-        <p className="mt-1 text-sm text-stone-600">
+        <p className="mt-1 text-sm text-texto/75">
           <Link
             href={`/coletivos${comParametros(parametros, {
               bairro: coletivo.bairro,
@@ -52,7 +52,7 @@ export function CartaoColetivo({
       {coletivo.descricao && (
         // `line-clamp` corta na exibição, e não no texto: a descrição inteira
         // continua no HTML, onde o buscador e o leitor de tela a alcançam.
-        <p className="mt-2 line-clamp-3 text-stone-700">{coletivo.descricao}</p>
+        <p className="mt-2 line-clamp-3 text-texto/85">{coletivo.descricao}</p>
       )}
 
       {coletivo.categorias.length > 0 && (
@@ -64,7 +64,7 @@ export function CartaoColetivo({
                   categoria: categoria.id,
                   page: undefined,
                 })}`}
-                className="inline-block rounded-full bg-emerald-50 px-3 py-1 text-sm text-emerald-900 hover:bg-emerald-100"
+                className="inline-block rounded-full border border-dourado bg-bege px-3 py-1 text-sm text-azul hover:bg-azul hover:text-bege"
               >
                 {categoria.nome}
               </Link>
