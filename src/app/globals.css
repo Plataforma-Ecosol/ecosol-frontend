@@ -20,6 +20,57 @@
   --color-dourado-escuro: #7A6028;
   --color-laranja: #F65608;
   --color-texto: #1C1917;
+
+  /*
+   * Tons (PRD da base visual, seção 3). Acréscimo, não troca: os seis tokens
+   * acima continuam sendo "a cor da marca", e cada escala tem o hex base num
+   * dos degraus (azul no 800, dourado no 400, laranja no 500) com o mesmo valor.
+   * Servem para fundo de seção, hover e selo sem sair da identidade.
+   *
+   * Geradas em OKLCH com a curva de luminosidade do Tailwind v4, ancorada no
+   * hex base — o mesmo método do uicolors.app. Croma limitado ao da cor base,
+   * para o dourado não virar mostarda nos degraus escuros. `bege` não tem
+   * escala: ele já é fundo, e `dourado-50`/`100` cobrem os bege mais escuros.
+   *
+   * Contraste medido (WCAG): `azul-800` e `azul` sobre `azul-50` 7,9:1;
+   * `laranja-700` sobre `laranja-50` 5,9:1; `azul-900` sobre branco 10,4:1.
+   * Mudou uma escala aqui, muda também o `UNFOLD["COLORS"]` do Admin.
+   */
+  --color-azul-50: #F4F7FE;
+  --color-azul-100: #E4EAFA;
+  --color-azul-200: #CFD9F6;
+  --color-azul-300: #B0C1F1;
+  --color-azul-400: #869EEB;
+  --color-azul-500: #6882DD;
+  --color-azul-600: #536AC3;
+  --color-azul-700: #4359B0;
+  --color-azul-800: #33469B;
+  --color-azul-900: #2C3C77;
+  --color-azul-950: #182143;
+
+  --color-dourado-50: #F9F6F1;
+  --color-dourado-100: #F0E9DC;
+  --color-dourado-200: #E4D8C0;
+  --color-dourado-300: #D3C095;
+  --color-dourado-400: #BD9D55;
+  --color-dourado-500: #A18239;
+  --color-dourado-600: #886A1D;
+  --color-dourado-700: #755803;
+  --color-dourado-800: #5E4602;
+  --color-dourado-900: #4F3A01;
+  --color-dourado-950: #2F2201;
+
+  --color-laranja-50: #FEF4F1;
+  --color-laranja-100: #FEE5DD;
+  --color-laranja-200: #FED1C2;
+  --color-laranja-300: #FEB299;
+  --color-laranja-400: #FD8258;
+  --color-laranja-500: #F65608;
+  --color-laranja-600: #CA4504;
+  --color-laranja-700: #AB3800;
+  --color-laranja-800: #892B01;
+  --color-laranja-900: #722301;
+  --color-laranja-950: #431100;
 }
 
 /**
