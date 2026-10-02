@@ -29,10 +29,10 @@ export function PerfilDoColetivo({ coletivo }: { coletivo: Coletivo }) {
   return (
     <article className="space-y-8">
       <header className="space-y-3">
-        <h1 className="text-3xl font-semibold text-emerald-900">{coletivo.nome}</h1>
+        <h1 className="text-3xl font-semibold text-azul">{coletivo.nome}</h1>
 
         {coletivo.bairro && (
-          <p className="text-stone-600">
+          <p className="text-texto/75">
             <Link
               href={`/coletivos?bairro=${encodeURIComponent(coletivo.bairro)}`}
               className="hover:underline"
@@ -48,7 +48,7 @@ export function PerfilDoColetivo({ coletivo }: { coletivo: Coletivo }) {
               <li key={categoria.id}>
                 <Link
                   href={`/coletivos?categoria=${categoria.id}`}
-                  className="inline-block rounded-full bg-emerald-50 px-3 py-1 text-sm text-emerald-900 hover:bg-emerald-100"
+                  className="inline-block rounded-full border border-dourado bg-bege px-3 py-1 text-sm text-azul hover:bg-azul hover:text-bege"
                 >
                   {categoria.nome}
                 </Link>
@@ -61,13 +61,13 @@ export function PerfilDoColetivo({ coletivo }: { coletivo: Coletivo }) {
       {coletivo.descricao && (
         // `whitespace-pre-line` preserva as quebras que a equipe digitou no
         // Admin. Sem isso, um texto com parágrafos vira um bloco único.
-        <section className="whitespace-pre-line text-lg leading-relaxed text-stone-800">
+        <section className="whitespace-pre-line text-lg leading-relaxed text-texto">
           {coletivo.descricao}
         </section>
       )}
 
       {temContato && (
-        <section className="rounded border border-stone-200 bg-white p-4">
+        <section className="rounded border border-dourado/60 bg-white p-4">
           <h2 className="text-lg font-medium">Contato</h2>
 
           <dl className="mt-3 space-y-2">
@@ -87,7 +87,7 @@ export function PerfilDoColetivo({ coletivo }: { coletivo: Coletivo }) {
                 <dd>
                   <a
                     href={`mailto:${coletivo.email}`}
-                    className="text-emerald-800 hover:underline"
+                    className="text-azul hover:underline"
                   >
                     {coletivo.email}
                   </a>
@@ -103,7 +103,7 @@ export function PerfilDoColetivo({ coletivo }: { coletivo: Coletivo }) {
                     href={instagram}
                     rel="noopener noreferrer"
                     target="_blank"
-                    className="text-emerald-800 hover:underline"
+                    className="text-azul hover:underline"
                   >
                     {arrobaDoInstagram(coletivo.instagram)}
                   </a>
@@ -119,7 +119,7 @@ export function PerfilDoColetivo({ coletivo }: { coletivo: Coletivo }) {
                     href={site}
                     rel="noopener noreferrer"
                     target="_blank"
-                    className="break-all text-emerald-800 hover:underline"
+                    className="break-all text-azul hover:underline"
                   >
                     {coletivo.site}
                   </a>
@@ -131,7 +131,7 @@ export function PerfilDoColetivo({ coletivo }: { coletivo: Coletivo }) {
       )}
 
       <p>
-        <Link href="/coletivos" className="text-emerald-800 hover:underline">
+        <Link href="/coletivos" className="text-azul hover:underline">
           ← Ver todos os coletivos
         </Link>
       </p>

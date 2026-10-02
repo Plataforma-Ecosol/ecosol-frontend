@@ -58,10 +58,10 @@ export default async function Mapa({
   return (
     <section className="space-y-6">
       <header className="space-y-2">
-        <h1 className="text-2xl font-semibold text-emerald-900">
+        <h1 className="text-2xl font-semibold text-azul">
           Mapa da economia solidária
         </h1>
-        <p className="text-stone-600">
+        <p className="text-texto/75">
           {pontos.length === 0
             ? "Nenhum ponto cadastrado até o momento."
             : `${pontos.length} ${pontos.length === 1 ? "ponto" : "pontos"} em Niterói.`}
@@ -75,8 +75,8 @@ export default async function Mapa({
             aria-current={tipoAtivo ? undefined : "page"}
             className={
               tipoAtivo
-                ? "rounded border border-stone-300 bg-white px-3 py-2 text-sm hover:border-stone-500"
-                : "rounded bg-emerald-800 px-3 py-2 text-sm text-white"
+                ? "rounded border border-azul bg-white px-3 py-2 text-sm text-azul hover:bg-azul/10"
+                : "rounded bg-azul px-3 py-2 text-sm text-bege"
             }
           >
             Todos
@@ -91,8 +91,8 @@ export default async function Mapa({
                 aria-current={ativo ? "page" : undefined}
                 className={
                   ativo
-                    ? "rounded bg-emerald-800 px-3 py-2 text-sm text-white"
-                    : "rounded border border-stone-300 bg-white px-3 py-2 text-sm hover:border-stone-500"
+                    ? "rounded bg-azul px-3 py-2 text-sm text-bege"
+                    : "rounded border border-azul bg-white px-3 py-2 text-sm text-azul hover:bg-azul/10"
                 }
               >
                 {rotulo}
@@ -105,7 +105,7 @@ export default async function Mapa({
       {pontos.length > 0 && <MapaCliente pontos={pontos} />}
 
       {truncado && (
-        <p className="rounded border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
+        <p className="rounded border-l-4 border-laranja bg-white p-3 text-sm text-texto">
           O mapa mostra os primeiros {resultado.results.length} pontos, de{" "}
           {resultado.count} cadastrados.
         </p>

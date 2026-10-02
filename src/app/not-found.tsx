@@ -13,11 +13,11 @@ export default function NaoEncontrado() {
   return (
     <section className="mx-auto max-w-prose py-12 text-center">
       <h1 className="text-2xl font-semibold">Página não encontrada</h1>
-      <p className="mt-4 text-stone-600">
+      <p className="mt-4 text-texto/75">
         O endereço que você abriu não existe ou foi alterado.
       </p>
       <p className="mt-6">
-        <Link href="/coletivos" className="text-emerald-800 underline">
+        <Link href="/coletivos" className="text-azul underline">
           Ver os coletivos da rede
         </Link>
       </p>
