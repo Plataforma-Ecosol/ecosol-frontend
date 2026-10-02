@@ -27,7 +27,7 @@ const Mapa = dynamic(() => import("@/componentes/Mapa"), {
   // mapa termina de carregar, e quem estiver lendo a lista perde o lugar.
   loading: () => (
     <div
-      className="h-[28rem] w-full animate-pulse rounded border border-dourado/60 bg-azul/10"
+      className="h-[28rem] w-full animate-pulse rounded border border-stone-200 bg-stone-100"
       aria-hidden="true"
     />
   ),

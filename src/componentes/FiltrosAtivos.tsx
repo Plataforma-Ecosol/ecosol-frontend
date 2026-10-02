@@ -40,13 +40,13 @@ export function FiltrosAtivos({
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <span className="text-sm text-texto/75">Filtrando por:</span>
+      <span className="text-sm text-stone-600">Filtrando por:</span>
 
       {ativos.map(({ chave, rotulo }) => (
         <Link
           key={chave}
           href={`${rota}${comParametros(parametros, { [chave]: undefined, page: undefined })}`}
-          className="inline-flex items-center gap-1 rounded-full border border-azul bg-white px-3 py-1 text-sm text-azul hover:bg-azul/10"
+          className="inline-flex items-center gap-1 rounded-full border border-stone-300 bg-white px-3 py-1 text-sm hover:border-stone-500"
         >
           {rotulo}
           {/* O × é decorativo; quem usa leitor de tela ouve o texto abaixo. */}

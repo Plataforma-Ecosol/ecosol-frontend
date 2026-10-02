@@ -50,23 +50,23 @@ export default async function DetalheDoEvento({ params }: Props) {
   return (
     <article className="space-y-8">
       <header className="space-y-3">
-        <p className="font-medium text-dourado-escuro">
+        <p className="font-medium text-emerald-800">
           <time dateTime={evento.data_inicio}>
             {formatarQuando(evento.data_inicio, evento.data_fim)}
           </time>
         </p>
 
-        <h1 className="text-3xl font-semibold text-azul">{evento.titulo}</h1>
+        <h1 className="text-3xl font-semibold text-emerald-900">{evento.titulo}</h1>
 
         {(evento.local || evento.bairro) && (
-          <p className="text-texto/75">
+          <p className="text-stone-600">
             {[evento.local, evento.bairro].filter(Boolean).join(" · ")}
           </p>
         )}
       </header>
 
       {evento.descricao && (
-        <section className="whitespace-pre-line text-lg leading-relaxed text-texto">
+        <section className="whitespace-pre-line text-lg leading-relaxed text-stone-800">
           {evento.descricao}
         </section>
       )}
@@ -77,7 +77,7 @@ export default async function DetalheDoEvento({ params }: Props) {
             href={evento.link}
             rel="noopener noreferrer"
             target="_blank"
-            className="inline-block rounded bg-azul px-4 py-2 text-bege hover:bg-azul/90"
+            className="inline-block rounded bg-emerald-800 px-4 py-2 text-white hover:bg-emerald-900"
           >
             Mais informações e inscrição
           </a>
@@ -101,10 +101,10 @@ export default async function DetalheDoEvento({ params }: Props) {
                     width={800}
                     height={600}
                     sizes="(min-width: 640px) 50vw, 100vw"
-                    className="h-auto w-full rounded border border-dourado/60"
+                    className="h-auto w-full rounded border border-stone-200"
                   />
                   {imagem.legenda && (
-                    <figcaption className="mt-1 text-sm text-texto/75">
+                    <figcaption className="mt-1 text-sm text-stone-600">
                       {imagem.legenda}
                     </figcaption>
                   )}
@@ -116,7 +116,7 @@ export default async function DetalheDoEvento({ params }: Props) {
       )}
 
       <p>
-        <Link href="/eventos" className="text-azul hover:underline">
+        <Link href="/eventos" className="text-emerald-800 hover:underline">
           ← Ver a agenda
         </Link>
       </p>
