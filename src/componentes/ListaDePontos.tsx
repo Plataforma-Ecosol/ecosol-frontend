@@ -17,7 +17,7 @@ import type { PontoDeInteresse } from "@/tipos/api";
 export function ListaDePontos({ pontos }: { pontos: PontoDeInteresse[] }) {
   if (pontos.length === 0) {
     return (
-      <p className="rounded border border-dourado/60 bg-white p-6 text-texto/85">
+      <p className="rounded border border-stone-200 bg-white p-6 text-stone-700">
         Nenhum ponto para mostrar.
       </p>
     );
@@ -26,14 +26,14 @@ export function ListaDePontos({ pontos }: { pontos: PontoDeInteresse[] }) {
   return (
     <ul className="space-y-3">
       {pontos.map((ponto) => (
-        <li key={ponto.id} className="rounded border border-dourado/60 bg-white p-4">
-          <h3 className="font-medium text-azul">{ponto.nome}</h3>
+        <li key={ponto.id} className="rounded border border-stone-200 bg-white p-4">
+          <h3 className="font-medium">{ponto.nome}</h3>
           {/* O rótulo vem pronto da API. Traduzir `tipo` aqui sairia de
               sincronia com o Admin no dia em que a equipe criar um tipo novo. */}
-          <p className="text-sm text-texto/75">{ponto.tipo_display}</p>
+          <p className="text-sm text-stone-600">{ponto.tipo_display}</p>
 
-          {ponto.endereco && <p className="mt-1 text-texto/85">{ponto.endereco}</p>}
-          {ponto.descricao && <p className="mt-2 text-texto/85">{ponto.descricao}</p>}
+          {ponto.endereco && <p className="mt-1 text-stone-700">{ponto.endereco}</p>}
+          {ponto.descricao && <p className="mt-2 text-stone-700">{ponto.descricao}</p>}
 
           {/* `coletivo` é `null` tanto para "sem vínculo" quanto para "vínculo
               com coletivo fora do ar", e os dois são indistinguíveis DE
@@ -43,7 +43,7 @@ export function ListaDePontos({ pontos }: { pontos: PontoDeInteresse[] }) {
             <p className="mt-2">
               <Link
                 href={`/coletivos/${ponto.coletivo.slug}`}
-                className="text-azul hover:underline"
+                className="text-emerald-800 hover:underline"
               >
                 {ponto.coletivo.nome}
               </Link>
