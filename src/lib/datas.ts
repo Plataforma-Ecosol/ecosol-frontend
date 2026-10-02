@@ -32,6 +32,14 @@ const HORA = new Intl.DateTimeFormat("pt-BR", {
   minute: "2-digit",
 });
 
+/** As três partes do bloco de data do cartão, cada uma em separado. */
+const MES = new Intl.DateTimeFormat("pt-BR", { timeZone: FUSO, month: "short" });
+const DIA = new Intl.DateTimeFormat("pt-BR", { timeZone: FUSO, day: "2-digit" });
+const DIA_DA_SEMANA = new Intl.DateTimeFormat("pt-BR", {
+  timeZone: FUSO,
+  weekday: "short",
+});
+
 /** O dia civil em São Paulo, como `2026-08-15`, para comparar duas datas. */
 const DIA_ISO = new Intl.DateTimeFormat("en-CA", {
   timeZone: FUSO,
@@ -86,6 +94,48 @@ export function formatarQuando(inicio: string, fim: string | null): string {
     `De ${DATA_LONGA.format(dataInicio)}, ${hora(dataInicio)}` +
     ` a ${DATA_LONGA.format(dataFim)}, ${hora(dataFim)}`
   );
+}
+
+/**
+ * Só o horário, para a linha de metadados do cartão: `14h` ou `14h às 17h`.
+ *
+ * O fim só aparece quando cai no mesmo dia. Num evento de vários dias, "das 9h
+ * às 18h" mentiria sobre a duração; o cartão mostra o início e a página do
+ * evento traz o `formatarQuando` completo.
+ */
+export function formatarHorario(inicio: string, fim: string | null): string {
+  const dataInicio = paraData(inicio);
+  if (!dataInicio) return "";
+
+  const dataFim = fim ? paraData(fim) : null;
+  if (dataFim && DIA_ISO.format(dataInicio) === DIA_ISO.format(dataFim)) {
+    return `${hora(dataInicio)} às ${hora(dataFim)}`;
+  }
+  return hora(dataInicio);
+}
+
+/** `out.` vira `OUT`: o ponto de abreviação não cabe no bloco do calendário. */
+function abreviacao(texto: string): string {
+  return texto.replace(".", "").toUpperCase();
+}
+
+/**
+ * Mês, dia e dia da semana em separado, para o bloco de calendário do cartão:
+ * `{ mes: "OUT", dia: "20", diaDaSemana: "TER" }`.
+ *
+ * `null` para data impossível de ler — quem chama volta ao texto cru, como o
+ * `formatarDataCurta` já faz, em vez de desenhar um calendário vazio.
+ */
+export function partesDaData(
+  iso: string,
+): { mes: string; dia: string; diaDaSemana: string } | null {
+  const data = paraData(iso);
+  if (!data) return null;
+  return {
+    mes: abreviacao(MES.format(data)),
+    dia: DIA.format(data),
+    diaDaSemana: abreviacao(DIA_DA_SEMANA.format(data)),
+  };
 }
 
 /** Versão compacta para o cartão da listagem: `15 de ago., 18h`. */
