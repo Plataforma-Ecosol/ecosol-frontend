@@ -1,9 +1,10 @@
+import { CalendarDays, Clock, MapPin } from "lucide-react";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 
 import { buscarEvento, urlPublicaDeMidia } from "@/lib/api";
-import { formatarQuando } from "@/lib/datas";
+import { formatarDia, formatarHorario, formatarQuando } from "@/lib/datas";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -47,19 +48,39 @@ export default async function DetalheDoEvento({ params }: Props) {
   const { slug } = await params;
   const evento = await buscarEvento(slug);
 
+  const variosDias =
+    evento.data_fim !== null &&
+    formatarDia(evento.data_fim) !== formatarDia(evento.data_inicio);
+  const horario = formatarHorario(evento.data_inicio, evento.data_fim);
+
   return (
     <article className="space-y-8">
       <header className="space-y-3">
-        <p className="font-medium text-dourado-escuro">
-          <time dateTime={evento.data_inicio}>
-            {formatarQuando(evento.data_inicio, evento.data_fim)}
-          </time>
-        </p>
+        {/* Evento de um dia: data e horário em linhas próprias, cada uma com
+            seu ícone. Vários dias: a frase inteira do `formatarQuando`, que
+            separar em dois pedaços deixaria ambígua. */}
+        <div className="flex flex-wrap gap-x-5 gap-y-1 font-medium text-dourado-escuro">
+          <p className="flex items-center gap-1.5">
+            <CalendarDays aria-hidden className="size-4 shrink-0" />
+            <time dateTime={evento.data_inicio}>
+              {variosDias
+                ? formatarQuando(evento.data_inicio, evento.data_fim)
+                : formatarDia(evento.data_inicio)}
+            </time>
+          </p>
+          {!variosDias && horario && (
+            <p className="flex items-center gap-1.5">
+              <Clock aria-hidden className="size-4 shrink-0" />
+              {horario}
+            </p>
+          )}
+        </div>
 
         <h1 className="text-3xl font-bold text-azul">{evento.titulo}</h1>
 
         {(evento.local || evento.bairro) && (
-          <p className="text-texto/75">
+          <p className="flex items-center gap-1.5 text-texto/75">
+            <MapPin aria-hidden className="size-4 shrink-0 text-dourado-escuro" />
             {[evento.local, evento.bairro].filter(Boolean).join(" · ")}
           </p>
         )}

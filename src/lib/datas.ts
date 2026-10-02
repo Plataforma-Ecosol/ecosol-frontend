@@ -96,6 +96,12 @@ export function formatarQuando(inicio: string, fim: string | null): string {
   );
 }
 
+/** Só o dia, por extenso: `20 de outubro de 2026`. */
+export function formatarDia(iso: string): string {
+  const data = paraData(iso);
+  return data ? DATA_LONGA.format(data) : iso;
+}
+
 /**
  * Só o horário, para a linha de metadados do cartão: `14h` ou `14h às 17h`.
  *

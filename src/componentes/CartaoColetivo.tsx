@@ -1,3 +1,4 @@
+import { MapPin } from "lucide-react";
 import Link from "next/link";
 
 import { comParametros, type ParametrosDaRota } from "@/lib/consulta";
@@ -42,8 +43,9 @@ export function CartaoColetivo({
               bairro: coletivo.bairro,
               page: undefined,
             })}`}
-            className="hover:underline"
+            className="inline-flex items-center gap-1.5 hover:underline"
           >
+            <MapPin aria-hidden className="size-4 shrink-0 text-dourado-escuro" />
             {coletivo.bairro}
           </Link>
         </p>

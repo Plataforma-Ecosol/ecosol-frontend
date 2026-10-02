@@ -1,3 +1,4 @@
+import { AtSign, Globe, Mail, MapPin, Phone } from "lucide-react";
 import Link from "next/link";
 
 import { arrobaDoInstagram, urlDoInstagram, urlDoSite } from "@/lib/contatos";
@@ -10,11 +11,12 @@ import type { Coletivo } from "@/tipos/api";
  * aparece se a chave existir na resposta — o backend a remove quando não há
  * consentimento, e é essa ausência que o `&&` abaixo respeita.
  *
- * Repare que o rótulo vive DENTRO da condição, sempre. Escrever
- * `<dt>Telefone</dt>` fora dela produziria o rótulo com nada ao lado, o que
- * denuncia que existe um telefone cadastrado e escondido — exatamente o que a
- * omissão de chave no backend existe para impedir. É a diferença entre "não
- * há telefone público" e "há um telefone que você não pode ver".
+ * Repare que o rótulo — e o ícone ao lado dele — vive DENTRO da condição,
+ * sempre. Escrever `<dt>Telefone</dt>` fora dela produziria o rótulo com nada
+ * ao lado, o que denuncia que existe um telefone cadastrado e escondido —
+ * exatamente o que a omissão de chave no backend existe para impedir. É a
+ * diferença entre "não há telefone público" e "há um telefone que você não
+ * pode ver". Um ícone de telefone órfão denunciaria a mesma coisa.
  *
  * Componente separado da página, e não JSX solto dentro dela, para que a suíte
  * possa renderizá-lo com um coletivo forjado e conferir o que sai — sem
@@ -35,8 +37,9 @@ export function PerfilDoColetivo({ coletivo }: { coletivo: Coletivo }) {
           <p className="text-texto/75">
             <Link
               href={`/coletivos?bairro=${encodeURIComponent(coletivo.bairro)}`}
-              className="hover:underline"
+              className="inline-flex items-center gap-1.5 hover:underline"
             >
+              <MapPin aria-hidden className="size-4 shrink-0 text-dourado-escuro" />
               {coletivo.bairro}
             </Link>
           </p>
@@ -73,7 +76,10 @@ export function PerfilDoColetivo({ coletivo }: { coletivo: Coletivo }) {
           <dl className="mt-3 space-y-2">
             {coletivo.telefone && (
               <div className="flex flex-wrap gap-x-2">
-                <dt className="font-medium">Telefone:</dt>
+                <dt className="inline-flex items-center gap-1.5 font-medium">
+                  <Phone aria-hidden className="size-4 shrink-0 text-dourado-escuro" />
+                  Telefone:
+                </dt>
                 {/* Texto, e não link `tel:`: o campo aceita formato livre, e
                     montar o link exigiria adivinhar DDI e DDD. Errar o número
                     é pior do que não ter o atalho de discagem. */}
@@ -83,7 +89,10 @@ export function PerfilDoColetivo({ coletivo }: { coletivo: Coletivo }) {
 
             {coletivo.email && (
               <div className="flex flex-wrap gap-x-2">
-                <dt className="font-medium">E-mail:</dt>
+                <dt className="inline-flex items-center gap-1.5 font-medium">
+                  <Mail aria-hidden className="size-4 shrink-0 text-dourado-escuro" />
+                  E-mail:
+                </dt>
                 <dd>
                   <a
                     href={`mailto:${coletivo.email}`}
@@ -97,7 +106,10 @@ export function PerfilDoColetivo({ coletivo }: { coletivo: Coletivo }) {
 
             {instagram && coletivo.instagram && (
               <div className="flex flex-wrap gap-x-2">
-                <dt className="font-medium">Instagram:</dt>
+                <dt className="inline-flex items-center gap-1.5 font-medium">
+                  <AtSign aria-hidden className="size-4 shrink-0 text-dourado-escuro" />
+                  Instagram:
+                </dt>
                 <dd>
                   <a
                     href={instagram}
@@ -113,7 +125,10 @@ export function PerfilDoColetivo({ coletivo }: { coletivo: Coletivo }) {
 
             {site && (
               <div className="flex flex-wrap gap-x-2">
-                <dt className="font-medium">Site:</dt>
+                <dt className="inline-flex items-center gap-1.5 font-medium">
+                  <Globe aria-hidden className="size-4 shrink-0 text-dourado-escuro" />
+                  Site:
+                </dt>
                 <dd>
                   <a
                     href={site}

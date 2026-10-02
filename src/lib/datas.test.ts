@@ -13,7 +13,13 @@
  */
 import { describe, expect, it } from "vitest";
 
-import { formatarDataCurta, formatarHorario, formatarQuando, partesDaData } from "@/lib/datas";
+import {
+  formatarDataCurta,
+  formatarDia,
+  formatarHorario,
+  formatarQuando,
+  partesDaData,
+} from "@/lib/datas";
 
 describe("formatarQuando", () => {
   it("sem data de fim, mostra só o início", () => {
@@ -79,6 +85,16 @@ describe("formatarQuando", () => {
 describe("formatarDataCurta", () => {
   it("encurta para o cartão da listagem", () => {
     expect(formatarDataCurta("2026-08-15T18:00:00-03:00")).toBe("15 de ago., 18h");
+  });
+});
+
+describe("formatarDia", () => {
+  it("mostra só o dia, por extenso e no fuso de Niterói", () => {
+    expect(formatarDia("2026-10-21T01:30:00Z")).toBe("20 de outubro de 2026");
+  });
+
+  it("devolve o valor cru se a data for impossível de ler", () => {
+    expect(formatarDia("nao é uma data")).toBe("nao é uma data");
   });
 });
 

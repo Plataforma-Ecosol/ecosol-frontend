@@ -1,3 +1,4 @@
+import { Clock, MapPin } from "lucide-react";
 import Link from "next/link";
 
 import { BlocoDeData } from "@/componentes/BlocoDeData";
@@ -40,9 +41,17 @@ export function CartaoEvento({ evento }: { evento: Evento }) {
             se consegue chegar, e só depois se interessa pelo conteúdo. */}
         {(horario || evento.local || evento.bairro) && (
           <p className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-sm text-texto/75">
-            {horario && <span>{horario}</span>}
+            {horario && (
+              <span className="inline-flex items-center gap-1.5">
+                <Clock aria-hidden className="size-4 shrink-0 text-dourado-escuro" />
+                {horario}
+              </span>
+            )}
             {(evento.local || evento.bairro) && (
-              <span>{[evento.local, evento.bairro].filter(Boolean).join(" · ")}</span>
+              <span className="inline-flex items-center gap-1.5">
+                <MapPin aria-hidden className="size-4 shrink-0 text-dourado-escuro" />
+                {[evento.local, evento.bairro].filter(Boolean).join(" · ")}
+              </span>
             )}
           </p>
         )}
