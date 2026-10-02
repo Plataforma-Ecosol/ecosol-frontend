@@ -1,22 +1,45 @@
 @import "tailwindcss";
 
 /**
+ * Paleta da Casa da Economia Solidária Paul Singer (PRD da paleta de cores).
+ *
+ * Única fonte das cores do site: todo componente usa as classes geradas daqui
+ * (`bg-azul`, `text-texto/75`, `border-dourado`...) e nenhum usa hex solto —
+ * nem o pino do mapa, que lê `var(--color-azul)` por estar fora do Tailwind.
+ * Os mesmos seis valores vão para o Django Admin, num card próprio: mudar uma
+ * cor aqui pede a mesma mudança lá.
+ *
+ * Papéis, e não só cores: azul é marca e ação; bege é fundo; dourado é só
+ * detalhe (borda, divisor, contorno), nunca texto — 2,6:1 sobre branco.
+ * Texto dourado usa `dourado-escuro`. Laranja é acento pontual.
+ */
+@theme {
+  --color-azul: #33469B;
+  --color-bege: #F6F0DC;
+  --color-dourado: #BD9D55;
+  --color-dourado-escuro: #7A6028;
+  --color-laranja: #F65608;
+  --color-texto: #1C1917;
+}
+
+/**
  * Estilo base do site.
  *
- * **Não há regra de cor aqui, e é de propósito.** O `create-next-app` gera
+ * **Não há regra de cor no `body`, e é de propósito.** O `create-next-app` gera
  * este arquivo com `body { background: var(--background); color: var(--foreground) }`
  * e um bloco `prefers-color-scheme: dark`. Os dois juntos quebram o site:
  *
  * 1. Uma regra escrita fora de `@layer` vence QUALQUER utilitário do Tailwind,
  *    que mora em camada — independente de especificidade. Então o
- *    `bg-stone-50` do `<body>` no layout nunca chegava a valer.
+ *    fundo do `<body>` no layout nunca chegava a valer.
  * 2. Com isso, em quem usa o sistema em modo escuro o fundo virava `#0a0a0a`,
  *    enquanto todo o texto continuava nas cores escolhidas para fundo claro.
  *    Medido: fundo `rgb(10,10,10)` com texto cinza escuro — ilegível.
  *
  * O MVP tem um tema só, claro (o tema escuro está fora de escopo pelo PRD).
  * Meio tema escuro — fundo trocado, texto não — é pior do que nenhum. As cores
- * ficam onde dá para vê-las: nas classes do `layout.tsx`.
+ * ficam onde dá para vê-las: nas classes do `layout.tsx`, a partir dos tokens
+ * do `@theme` acima.
  */
 
 /**
