@@ -9,6 +9,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import Logo from "@/componentes/Logo";
+
 import {
   ENDERECO_DA_AREA_DA_EQUIPE,
   ENDERECO_DO_SITE,
@@ -67,10 +69,13 @@ export default function RootLayout({
 
         <header className="border-b-2 border-dourado bg-azul text-bege">
           <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-4">
-            <Link href="/" className="text-lg font-semibold text-bege">
-              Economia Solidária <span className="text-bege/80">Niterói</span>
-            </Link>
-            <nav aria-label="Principal" className="flex gap-4 text-sm">
+            <Logo lugar="cabecalho" />
+            <nav
+              aria-label="Principal"
+              // `ml-auto` leva o menu inteiro para a direita: a logo e o nome
+              // da Casa ficam sozinhos do outro lado.
+              className="ml-auto flex items-center gap-5 text-sm sm:gap-6"
+            >
               {NAVEGACAO.map(({ href, rotulo }) => (
                 <Link
                   key={href}
@@ -89,24 +94,27 @@ export default function RootLayout({
         </main>
 
         <footer className="border-t-2 border-dourado bg-azul text-bege">
-          <div className="mx-auto max-w-5xl px-4 py-6 text-sm">
-            <p>
-              Centro Público de Referência em Economia Solidária (Casa Paul
-              Singer) · ITES / IFRJ Campus Niterói
-            </p>
-            <p className="mt-1">Software livre, sob licença GPLv3.</p>
-            {/* Só quem já sabe o que procura encontra: nada em destaque,
-                nenhum formulário de login aqui — o cadastro vive no Django
-                Admin, em outro domínio. */}
-            <p className="mt-1">
-              <a
-                href={ENDERECO_DA_AREA_DA_EQUIPE}
-                rel="nofollow"
-                className="text-bege/80 underline hover:text-bege"
-              >
-                Área da equipe
-              </a>
-            </p>
+          <div className="mx-auto flex max-w-5xl items-start gap-4 px-4 py-6 text-sm">
+            <Logo lugar="rodape" />
+            <div>
+              <p>
+                Centro Público de Referência em Economia Solidária (Casa Paul
+                Singer) · ITES / IFRJ Campus Niterói
+              </p>
+              <p className="mt-1">Software livre, sob licença GPLv3.</p>
+              {/* Só quem já sabe o que procura encontra: nada em destaque,
+                  nenhum formulário de login aqui — o cadastro vive no Django
+                  Admin, em outro domínio. */}
+              <p className="mt-1">
+                <a
+                  href={ENDERECO_DA_AREA_DA_EQUIPE}
+                  rel="nofollow"
+                  className="text-bege/80 underline hover:text-bege"
+                >
+                  Área da equipe
+                </a>
+              </p>
+            </div>
           </div>
         </footer>
       </body>
