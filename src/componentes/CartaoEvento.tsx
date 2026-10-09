@@ -12,13 +12,13 @@ import type { Evento } from "@/tipos/api";
  */
 export function CartaoEvento({ evento }: { evento: Evento }) {
   return (
-    <article className="rounded border border-dourado/60 bg-white p-4">
-      <p className="text-sm font-medium text-dourado-escuro">
+    <article className="rounded border border-stone-200 bg-white p-4">
+      <p className="text-sm font-medium text-emerald-800">
         <time dateTime={evento.data_inicio}>{formatarDataCurta(evento.data_inicio)}</time>
       </p>
 
       <h3 className="mt-1 text-lg font-medium">
-        <Link href={`/eventos/${evento.slug}`} className="text-azul hover:underline">
+        <Link href={`/eventos/${evento.slug}`} className="hover:underline">
           {evento.titulo}
         </Link>
       </h3>
@@ -26,13 +26,13 @@ export function CartaoEvento({ evento }: { evento: Evento }) {
       {/* O local aparece antes da descrição: quem olha a agenda decide primeiro
           se consegue chegar, e só depois se interessa pelo conteúdo. */}
       {(evento.local || evento.bairro) && (
-        <p className="mt-1 text-sm text-texto/75">
+        <p className="mt-1 text-sm text-stone-600">
           {[evento.local, evento.bairro].filter(Boolean).join(" · ")}
         </p>
       )}
 
       {evento.descricao && (
-        <p className="mt-2 line-clamp-2 text-texto/85">{evento.descricao}</p>
+        <p className="mt-2 line-clamp-2 text-stone-700">{evento.descricao}</p>
       )}
     </article>
   );

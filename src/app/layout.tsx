@@ -55,27 +55,27 @@ export default function RootLayout({
     // `lang="pt-BR"` não é detalhe: é o que faz o leitor de tela pronunciar a
     // página em português e o navegador oferecer a tradução correta.
     <html lang="pt-BR">
-      <body className="flex min-h-screen flex-col bg-bege text-texto antialiased">
+      <body className="flex min-h-screen flex-col bg-stone-50 text-stone-900 antialiased">
         {/* Primeiro elemento focável da página: quem navega por teclado pula o
             menu em vez de percorrê-lo a cada troca de página. */}
         <a
           href="#conteudo"
-          className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:bg-white focus:p-3 focus:text-azul"
+          className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:bg-white focus:p-3 focus:text-emerald-800"
         >
           Pular para o conteúdo
         </a>
 
-        <header className="border-b-2 border-dourado bg-azul text-bege">
+        <header className="border-b border-stone-200 bg-white">
           <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-4">
-            <Link href="/" className="text-lg font-semibold text-bege">
-              Economia Solidária <span className="text-bege/80">Niterói</span>
+            <Link href="/" className="text-lg font-semibold text-emerald-800">
+              Economia Solidária <span className="text-stone-500">Niterói</span>
             </Link>
             <nav aria-label="Principal" className="flex gap-4 text-sm">
               {NAVEGACAO.map(({ href, rotulo }) => (
                 <Link
                   key={href}
                   href={href}
-                  className="hover:underline"
+                  className="hover:text-emerald-800 hover:underline"
                 >
                   {rotulo}
                 </Link>
@@ -88,8 +88,8 @@ export default function RootLayout({
           {children}
         </main>
 
-        <footer className="border-t-2 border-dourado bg-azul text-bege">
-          <div className="mx-auto max-w-5xl px-4 py-6 text-sm">
+        <footer className="border-t border-stone-200 bg-white">
+          <div className="mx-auto max-w-5xl px-4 py-6 text-sm text-stone-600">
             <p>
               Centro Público de Referência em Economia Solidária (Casa Paul
               Singer) · ITES / IFRJ Campus Niterói
@@ -102,7 +102,7 @@ export default function RootLayout({
               <a
                 href={ENDERECO_DA_AREA_DA_EQUIPE}
                 rel="nofollow"
-                className="text-bege/80 underline hover:text-bege"
+                className="text-stone-600 underline hover:text-emerald-800"
               >
                 Área da equipe
               </a>

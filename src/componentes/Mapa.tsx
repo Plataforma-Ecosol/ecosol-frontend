@@ -3,7 +3,7 @@
 import L from "leaflet";
 import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
 
-import type { PontoDeInteresse } from "@/tipos/api";
+import type { PontoDeInteresse, TipoPonto } from "@/tipos/api";
 
 import "leaflet/dist/leaflet.css";
 
@@ -23,31 +23,42 @@ import "leaflet/dist/leaflet.css";
 const CENTRO_DE_NITEROI: [number, number] = [-22.8832, -43.1034];
 
 /**
+ * Cor de cada tipo, para o pino dizer o que é antes de ser clicado.
+ *
+ * O RÓTULO continua vindo de `tipo_display`, da API — só a cor é decidida
+ * aqui. Traduzir o tipo no frontend sairia de sincronia com o Admin no dia em
+ * que a equipe criar um tipo novo; escolher uma cor, não.
+ */
+const COR_POR_TIPO: Record<TipoPonto, string> = {
+  orgao_es: "#1e40af",
+  loja_fisica: "#9a3412",
+  feira_arariboia: "#166534",
+};
+
+const COR_PADRAO = "#44403c";
+
+/**
  * Pino desenhado em HTML, e não a imagem padrão do Leaflet.
  *
  * O ícone padrão resolve o caminho do PNG de um jeito que os empacotadores
  * quebram — o sintoma é um mapa correto com marcadores invisíveis, sem erro
  * no console. Um `divIcon` não depende de arquivo nenhum, então não há o que
- * quebrar.
- *
- * Todo pino é azul com contorno dourado (PRD da paleta): o tipo do ponto
- * aparece no balão e na lista abaixo do mapa, não na cor. As cores vêm das
- * variáveis do `@theme`, e não de hex repetido aqui — o SVG fica fora do
- * Tailwind, mas não fora da paleta. Vão em `style`, e não no atributo `fill`,
- * porque `var()` em atributo de apresentação do SVG não vale em todo navegador.
+ * quebrar; de quebra, permite colorir por tipo.
  */
-const PINO = L.divIcon({
-  className: "", // sem isto o Leaflet acrescenta a moldura branca dele
-  // O viewBox sobra 1,5 de cada lado para o contorno não ser cortado na borda.
-  html: `<svg width="26" height="36" viewBox="-1.5 -1.5 29 39" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-    <path d="M13 0C5.8 0 0 5.8 0 13c0 9.7 13 23 13 23s13-13.3 13-23C26 5.8 20.2 0 13 0z" style="fill: var(--color-azul); stroke: var(--color-dourado); stroke-width: 1.5"/>
-    <circle cx="13" cy="13" r="5" style="fill: var(--color-bege)"/>
-  </svg>`,
-  iconSize: [26, 36],
-  // A ponta do pino é que marca o lugar, não o centro do desenho.
-  iconAnchor: [13, 36],
-  popupAnchor: [0, -34],
-});
+function pino(tipo: TipoPonto): L.DivIcon {
+  const cor = COR_POR_TIPO[tipo] ?? COR_PADRAO;
+  return L.divIcon({
+    className: "", // sem isto o Leaflet acrescenta a moldura branca dele
+    html: `<svg width="26" height="36" viewBox="0 0 26 36" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path d="M13 0C5.8 0 0 5.8 0 13c0 9.7 13 23 13 23s13-13.3 13-23C26 5.8 20.2 0 13 0z" fill="${cor}"/>
+      <circle cx="13" cy="13" r="5" fill="#fff"/>
+    </svg>`,
+    iconSize: [26, 36],
+    // A ponta do pino é que marca o lugar, não o centro do desenho.
+    iconAnchor: [13, 36],
+    popupAnchor: [0, -34],
+  });
+}
 
 export default function Mapa({ pontos }: { pontos: PontoDeInteresse[] }) {
   // Enquadra todos os pontos. Com um só, `fitBounds` daria zoom máximo — daí
@@ -67,7 +78,7 @@ export default function Mapa({ pontos }: { pontos: PontoDeInteresse[] }) {
       center={limites ? undefined : centro}
       zoom={limites ? undefined : 14}
       scrollWheelZoom={false}
-      className="h-[28rem] w-full rounded border border-dourado/60"
+      className="h-[28rem] w-full rounded border border-stone-200"
     >
       <TileLayer
         // OpenStreetMap: código aberto, custo zero e sem dependência de
@@ -81,12 +92,12 @@ export default function Mapa({ pontos }: { pontos: PontoDeInteresse[] }) {
         <Marker
           key={ponto.id}
           position={[ponto.latitude, ponto.longitude]}
-          icon={PINO}
+          icon={pino(ponto.tipo)}
           title={ponto.nome}
         >
           <Popup>
             <strong className="block text-base">{ponto.nome}</strong>
-            <span className="text-texto/75">{ponto.tipo_display}</span>
+            <span className="text-stone-600">{ponto.tipo_display}</span>
 
             {ponto.endereco && <span className="mt-1 block">{ponto.endereco}</span>}
 
@@ -96,7 +107,7 @@ export default function Mapa({ pontos }: { pontos: PontoDeInteresse[] }) {
             {ponto.coletivo && (
               <a
                 href={`/coletivos/${ponto.coletivo.slug}`}
-                className="mt-2 block text-azul underline"
+                className="mt-2 block text-emerald-800 underline"
               >
                 {ponto.coletivo.nome}
               </a>
