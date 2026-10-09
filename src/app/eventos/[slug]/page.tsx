@@ -5,6 +5,7 @@ import Link from "next/link";
 
 import { buscarEvento, urlPublicaDeMidia } from "@/lib/api";
 import { formatarDia, formatarHorario, formatarQuando } from "@/lib/datas";
+import { IMAGEM_DE_COMPARTILHAMENTO } from "@/lib/site";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -31,7 +32,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description: descricao,
       url: `/eventos/${evento.slug}`,
       type: "article",
-      images: cartaz ? [{ url: urlPublicaDeMidia(cartaz.imagem) }] : undefined,
+      // Sem cartaz, a logo da Casa: sem nenhuma imagem, o link sairia sem
+      // prévia, porque declarar `openGraph` aqui descarta a do layout.
+      images: cartaz ? [{ url: urlPublicaDeMidia(cartaz.imagem) }] : [IMAGEM_DE_COMPARTILHAMENTO],
     },
   };
 }

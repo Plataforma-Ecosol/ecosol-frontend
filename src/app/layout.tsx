@@ -8,8 +8,8 @@
  */
 import type { Metadata } from "next";
 import { Bricolage_Grotesque } from "next/font/google";
-import Link from "next/link";
 
+import Logo from "@/componentes/Logo";
 import { NavegacaoPrincipal } from "@/componentes/NavegacaoPrincipal";
 import {
   ENDERECO_DA_AREA_DA_EQUIPE,
@@ -77,14 +77,11 @@ export default function RootLayout({
         </a>
 
         <header className="border-b-2 border-dourado bg-azul text-bege">
-          {/* Uma linha só, também no celular: nome à esquerda, menu à direita.
-              O nome pode quebrar dentro do próprio espaço; o menu, não. O
-              `flex-wrap` só entra em jogo sem JavaScript, quando os links do
+          {/* Uma linha só, também no celular: logo à esquerda, menu à direita.
+              O `flex-wrap` só entra em jogo sem JavaScript, quando os links do
               `<noscript>` descem para a linha de baixo. */}
-          <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-x-6 gap-y-2 px-4 py-3">
-            <Link href="/" className="min-w-0 text-base font-semibold text-bege sm:text-lg">
-              Economia Solidária <span className="text-bege/80">Niterói</span>
-            </Link>
+          <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-x-6 gap-y-2 px-4 py-4">
+            <Logo lugar="cabecalho" />
             <NavegacaoPrincipal />
           </div>
         </header>
@@ -94,24 +91,27 @@ export default function RootLayout({
         </main>
 
         <footer className="border-t-2 border-dourado bg-azul text-bege">
-          <div className="mx-auto max-w-5xl px-4 py-6 text-sm">
-            <p>
-              Centro Público de Referência em Economia Solidária (Casa Paul
-              Singer) · ITES / IFRJ Campus Niterói
-            </p>
-            <p className="mt-1">Software livre, sob licença GPLv3.</p>
-            {/* Só quem já sabe o que procura encontra: nada em destaque,
-                nenhum formulário de login aqui — o cadastro vive no Django
-                Admin, em outro domínio. */}
-            <p className="mt-1">
-              <a
-                href={ENDERECO_DA_AREA_DA_EQUIPE}
-                rel="nofollow"
-                className="text-bege/80 underline hover:text-bege"
-              >
-                Área da equipe
-              </a>
-            </p>
+          <div className="mx-auto flex max-w-5xl items-start gap-4 px-4 py-6 text-sm">
+            <Logo lugar="rodape" />
+            <div>
+              <p>
+                Centro Público de Referência em Economia Solidária (Casa Paul
+                Singer) · ITES / IFRJ Campus Niterói
+              </p>
+              <p className="mt-1">Software livre, sob licença GPLv3.</p>
+              {/* Só quem já sabe o que procura encontra: nada em destaque,
+                  nenhum formulário de login aqui — o cadastro vive no Django
+                  Admin, em outro domínio. */}
+              <p className="mt-1">
+                <a
+                  href={ENDERECO_DA_AREA_DA_EQUIPE}
+                  rel="nofollow"
+                  className="text-bege/80 underline hover:text-bege"
+                >
+                  Área da equipe
+                </a>
+              </p>
+            </div>
           </div>
         </footer>
       </body>
