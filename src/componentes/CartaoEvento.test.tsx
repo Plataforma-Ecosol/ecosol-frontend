@@ -66,4 +66,25 @@ describe("CartaoEvento", () => {
 
     expect(screen.getByText("Centro")).toBeInTheDocument();
   });
+
+  it("mostra o dia em bloco de calendário e o horário na linha de metadados", () => {
+    const { container } = render(<CartaoEvento evento={BASE} />);
+
+    expect(container.querySelector("div[aria-hidden]")?.textContent).toBe("AGO15SÁB");
+    expect(screen.getByText("18h às 21h")).toBeInTheDocument();
+    // Ícones só decoram: o texto ao lado é a informação.
+    expect(container.querySelector(".lucide-clock")).toHaveAttribute("aria-hidden", "true");
+    expect(container.querySelector(".lucide-map-pin")).toHaveAttribute("aria-hidden", "true");
+  });
+
+  it("com data impossível de ler, mostra o texto cru e não quebra", () => {
+    const quebrado: Evento = { ...BASE, data_inicio: "nao é uma data", data_fim: null };
+
+    const { container } = render(<CartaoEvento evento={quebrado} />);
+
+    expect(screen.getByText("nao é uma data")).toBeVisible();
+    expect(container.querySelector("time")).toHaveAttribute("dateTime", "nao é uma data");
+    // Sem bloco: nada de calendário vazio ao lado do título.
+    expect(container.querySelector("div[aria-hidden]")).toBeNull();
+  });
 });

@@ -50,8 +50,8 @@ export default async function Coletivos({
   return (
     <section className="space-y-6">
       <header className="space-y-2">
-        <h1 className="text-2xl font-semibold text-emerald-900">Coletivos da rede</h1>
-        <p className="text-stone-600">
+        <h1 className="text-2xl font-bold text-azul">Coletivos da rede</h1>
+        <p className="text-texto/75">
           {resultado.count === 0
             ? "Nenhum coletivo encontrado."
             : `${resultado.count} ${resultado.count === 1 ? "coletivo" : "coletivos"}.`}
@@ -71,7 +71,7 @@ export default async function Coletivos({
       />
 
       {resultado.results.length === 0 ? (
-        <p className="rounded border border-stone-200 bg-white p-6 text-stone-700">
+        <p className="rounded border border-dourado/60 bg-white p-6 text-texto/85">
           Nada corresponde a esta busca. Tente outro termo, ou remova os filtros
           acima para ver a rede inteira.
         </p>

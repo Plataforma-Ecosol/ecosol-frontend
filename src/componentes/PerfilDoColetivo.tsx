@@ -1,3 +1,4 @@
+import { AtSign, Globe, Mail, MapPin, Phone } from "lucide-react";
 import Link from "next/link";
 
 import { arrobaDoInstagram, urlDoInstagram, urlDoSite } from "@/lib/contatos";
@@ -10,11 +11,12 @@ import type { Coletivo } from "@/tipos/api";
  * aparece se a chave existir na resposta — o backend a remove quando não há
  * consentimento, e é essa ausência que o `&&` abaixo respeita.
  *
- * Repare que o rótulo vive DENTRO da condição, sempre. Escrever
- * `<dt>Telefone</dt>` fora dela produziria o rótulo com nada ao lado, o que
- * denuncia que existe um telefone cadastrado e escondido — exatamente o que a
- * omissão de chave no backend existe para impedir. É a diferença entre "não
- * há telefone público" e "há um telefone que você não pode ver".
+ * Repare que o rótulo — e o ícone ao lado dele — vive DENTRO da condição,
+ * sempre. Escrever `<dt>Telefone</dt>` fora dela produziria o rótulo com nada
+ * ao lado, o que denuncia que existe um telefone cadastrado e escondido —
+ * exatamente o que a omissão de chave no backend existe para impedir. É a
+ * diferença entre "não há telefone público" e "há um telefone que você não
+ * pode ver". Um ícone de telefone órfão denunciaria a mesma coisa.
  *
  * Componente separado da página, e não JSX solto dentro dela, para que a suíte
  * possa renderizá-lo com um coletivo forjado e conferir o que sai — sem
@@ -29,14 +31,15 @@ export function PerfilDoColetivo({ coletivo }: { coletivo: Coletivo }) {
   return (
     <article className="space-y-8">
       <header className="space-y-3">
-        <h1 className="text-3xl font-semibold text-emerald-900">{coletivo.nome}</h1>
+        <h1 className="text-3xl font-bold text-azul">{coletivo.nome}</h1>
 
         {coletivo.bairro && (
-          <p className="text-stone-600">
+          <p className="text-texto/75">
             <Link
               href={`/coletivos?bairro=${encodeURIComponent(coletivo.bairro)}`}
-              className="hover:underline"
+              className="inline-flex items-center gap-1.5 hover:underline"
             >
+              <MapPin aria-hidden className="size-4 shrink-0 text-dourado-escuro" />
               {coletivo.bairro}
             </Link>
           </p>
@@ -48,7 +51,7 @@ export function PerfilDoColetivo({ coletivo }: { coletivo: Coletivo }) {
               <li key={categoria.id}>
                 <Link
                   href={`/coletivos?categoria=${categoria.id}`}
-                  className="inline-block rounded-full bg-emerald-50 px-3 py-1 text-sm text-emerald-900 hover:bg-emerald-100"
+                  className="inline-block rounded-full border border-dourado bg-bege px-3 py-1 text-sm text-azul hover:bg-azul hover:text-bege"
                 >
                   {categoria.nome}
                 </Link>
@@ -61,19 +64,22 @@ export function PerfilDoColetivo({ coletivo }: { coletivo: Coletivo }) {
       {coletivo.descricao && (
         // `whitespace-pre-line` preserva as quebras que a equipe digitou no
         // Admin. Sem isso, um texto com parágrafos vira um bloco único.
-        <section className="whitespace-pre-line text-lg leading-relaxed text-stone-800">
+        <section className="whitespace-pre-line text-lg leading-relaxed text-texto">
           {coletivo.descricao}
         </section>
       )}
 
       {temContato && (
-        <section className="rounded border border-stone-200 bg-white p-4">
-          <h2 className="text-lg font-medium">Contato</h2>
+        <section className="rounded border border-dourado/60 bg-white p-4">
+          <h2 className="text-lg font-bold">Contato</h2>
 
           <dl className="mt-3 space-y-2">
             {coletivo.telefone && (
               <div className="flex flex-wrap gap-x-2">
-                <dt className="font-medium">Telefone:</dt>
+                <dt className="inline-flex items-center gap-1.5 font-medium">
+                  <Phone aria-hidden className="size-4 shrink-0 text-dourado-escuro" />
+                  Telefone:
+                </dt>
                 {/* Texto, e não link `tel:`: o campo aceita formato livre, e
                     montar o link exigiria adivinhar DDI e DDD. Errar o número
                     é pior do que não ter o atalho de discagem. */}
@@ -83,11 +89,14 @@ export function PerfilDoColetivo({ coletivo }: { coletivo: Coletivo }) {
 
             {coletivo.email && (
               <div className="flex flex-wrap gap-x-2">
-                <dt className="font-medium">E-mail:</dt>
+                <dt className="inline-flex items-center gap-1.5 font-medium">
+                  <Mail aria-hidden className="size-4 shrink-0 text-dourado-escuro" />
+                  E-mail:
+                </dt>
                 <dd>
                   <a
                     href={`mailto:${coletivo.email}`}
-                    className="text-emerald-800 hover:underline"
+                    className="text-azul hover:underline"
                   >
                     {coletivo.email}
                   </a>
@@ -97,13 +106,16 @@ export function PerfilDoColetivo({ coletivo }: { coletivo: Coletivo }) {
 
             {instagram && coletivo.instagram && (
               <div className="flex flex-wrap gap-x-2">
-                <dt className="font-medium">Instagram:</dt>
+                <dt className="inline-flex items-center gap-1.5 font-medium">
+                  <AtSign aria-hidden className="size-4 shrink-0 text-dourado-escuro" />
+                  Instagram:
+                </dt>
                 <dd>
                   <a
                     href={instagram}
                     rel="noopener noreferrer"
                     target="_blank"
-                    className="text-emerald-800 hover:underline"
+                    className="text-azul hover:underline"
                   >
                     {arrobaDoInstagram(coletivo.instagram)}
                   </a>
@@ -113,13 +125,16 @@ export function PerfilDoColetivo({ coletivo }: { coletivo: Coletivo }) {
 
             {site && (
               <div className="flex flex-wrap gap-x-2">
-                <dt className="font-medium">Site:</dt>
+                <dt className="inline-flex items-center gap-1.5 font-medium">
+                  <Globe aria-hidden className="size-4 shrink-0 text-dourado-escuro" />
+                  Site:
+                </dt>
                 <dd>
                   <a
                     href={site}
                     rel="noopener noreferrer"
                     target="_blank"
-                    className="break-all text-emerald-800 hover:underline"
+                    className="break-all text-azul hover:underline"
                   >
                     {coletivo.site}
                   </a>
@@ -131,7 +146,7 @@ export function PerfilDoColetivo({ coletivo }: { coletivo: Coletivo }) {
       )}
 
       <p>
-        <Link href="/coletivos" className="text-emerald-800 hover:underline">
+        <Link href="/coletivos" className="text-azul hover:underline">
           ← Ver todos os coletivos
         </Link>
       </p>

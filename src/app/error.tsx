@@ -15,15 +15,15 @@
 export default function Erro({ reset }: { error: Error; reset: () => void }) {
   return (
     <section className="mx-auto max-w-prose py-12 text-center">
-      <h1 className="text-2xl font-semibold">Não foi possível carregar esta página</h1>
-      <p className="mt-4 text-stone-600">
+      <h1 className="text-2xl font-bold">Não foi possível carregar esta página</h1>
+      <p className="mt-4 text-texto/75">
         Pode ter sido uma instabilidade momentânea. Tente de novo em alguns
         instantes.
       </p>
       <button
         type="button"
         onClick={reset}
-        className="mt-6 rounded bg-emerald-800 px-4 py-2 text-white hover:bg-emerald-900"
+        className="mt-6 rounded bg-azul px-4 py-2 text-bege hover:bg-azul/90"
       >
         Tentar de novo
       </button>

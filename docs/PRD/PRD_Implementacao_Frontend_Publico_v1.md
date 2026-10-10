@@ -163,6 +163,8 @@ Estas três são a razão de a Seção 4.2 existir. Errar qualquer uma produz bu
 | Linguagem | **TypeScript**, `strict: true` | O `strict` é o que faz a Seção 3.4 valer |
 | Estilo | **Tailwind CSS** | Na v4 a configuração é via CSS (`@import "tailwindcss"`), não `tailwind.config.js` — seguir o que o `create-next-app` gerar |
 | Mapa | **Leaflet + react-leaflet** | Só no cliente (Seção 4.4) |
+| Ícones | **lucide-react** | Importados um a um pelo nome; sempre ao lado de texto, com `aria-hidden`. Origem: PRD da base visual (`PRD_Base_Visual_v1.md`) |
+| Fonte dos títulos | **`next/font`** (já vem com o Next) | Um peso, subset latino, baixada no build e servida pelo próprio site. Origem: PRD da base visual |
 | Testes | **Vitest + React Testing Library** | e2e fora de escopo |
 
 Nenhuma biblioteca de componentes, nenhum gerenciador de estado, nenhum cliente HTTP (o `fetch` nativo basta). O v4.1 (2.1) prevê explicitamente que não é preciso biblioteca de formulário no MVP, já que a Interface 2 é o Django Admin.
@@ -510,7 +512,7 @@ O `next build` no CI não é redundante: ele é o único passo que pega o erro d
 
 - `revalidate` de 60 s nas listagens e 300 s nos detalhes, **no cache de `fetch`**. Como nenhuma página é pré-renderizada (Seção 4.3), é daí que vem a velocidade. O cadastro muda algumas vezes por semana; consultar a API a cada visita seria desperdício.
 - `next/image` com `sizes` correto — a galeria de evento é o único lugar com imagem pesada.
-- Nenhuma fonte externa: usar a pilha de fontes do sistema. Uma fonte do Google custa mais no 3G de um smartphone básico do que entrega em estética.
+- Uma fonte só nos títulos, via `next/font`, um peso e subset latino, servida pelo próprio site. Texto corrido na fonte do sistema. (Alterado pelo PRD da base visual, `PRD_Base_Visual_v1.md`; antes: nenhuma fonte externa.)
 
 **SEO** (o propósito do projeto):
 
@@ -606,7 +608,7 @@ Isto **não é contorno provisório**, é o desenho oficial. Registrado para que
 4. **Subir o backend local e olhar as respostas de verdade** antes de escrever os tipos. Conferir na resposta real que o coletivo sem consentimento não traz a chave do contato; é a diferença entre transcrever o contrato e verificá-lo.
 5. Seguir a ordem de PRs da Seção 6. Um PR por branch, saindo de `staging`, com Conventional Commits em português.
 6. Rodar `npm run lint`, `tsc --noEmit`, `vitest run` e `next build` a cada commit; só seguir com tudo verde.
-7. Nenhuma dependência além das da Seção 4.1. Querer uma a mais é sinal de parar e perguntar.
+7. Nenhuma dependência além das da Seção 4.1 — que, desde o PRD da base visual (`PRD_Base_Visual_v1.md`), incluem `lucide-react`. Querer uma a mais é sinal de parar e perguntar.
 8. Manter tudo em português — código, comentários, commits, textos de tela e mensagens de erro. É requisito de Tecnologia Social do projeto.
 9. **Não dar push sem autorização explícita.** Commit local é livre; `push`, PR e merge só quando o Jean pedir.
 10. Diante de qualquer ambiguidade sobre o que pode ser exibido: **parar e perguntar**. Em hipótese alguma inventar um campo, inferir um dado que a API não devolveu, ou exibir um valor "por precaução".
