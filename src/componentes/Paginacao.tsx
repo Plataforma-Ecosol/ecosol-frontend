@@ -36,7 +36,7 @@ export function Paginacao({
       {anterior ? (
         <Link
           href={`${rota}${comParametros(parametros, { page: anterior })}`}
-          className="rounded border border-stone-300 bg-white px-3 py-2 hover:border-stone-500"
+          className="rounded border border-azul bg-white px-3 py-2 text-azul hover:bg-azul/10"
           rel="prev"
         >
           ← Anterior
@@ -47,14 +47,14 @@ export function Paginacao({
         <span />
       )}
 
-      <span aria-current="page" className="text-sm text-stone-600">
+      <span aria-current="page" className="rounded bg-azul px-3 py-2 text-sm text-bege">
         Página {pagina} de {totalDePaginas}
       </span>
 
       {proxima ? (
         <Link
           href={`${rota}${comParametros(parametros, { page: proxima })}`}
-          className="rounded border border-stone-300 bg-white px-3 py-2 hover:border-stone-500"
+          className="rounded border border-azul bg-white px-3 py-2 text-azul hover:bg-azul/10"
           rel="next"
         >
           Próxima →

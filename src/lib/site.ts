@@ -57,3 +57,22 @@ export function urlAbsoluta(caminho: string): string {
  */
 export const SITE_INDEXAVEL =
   process.env.SITE_INDEXAVEL?.trim().toLowerCase() !== "false";
+
+/**
+ * A prévia padrão de link: a logo da Casa sobre bege (`app/opengraph-image.png`).
+ *
+ * O Next já a aplica sozinho às páginas que não declaram `openGraph`. Mas uma
+ * página que declara `openGraph` SUBSTITUI o do layout por inteiro, imagem
+ * inclusive — e o perfil do coletivo e o evento sem cartaz, justamente os
+ * links que mais circulam no WhatsApp, saíam sem prévia nenhuma. Essas
+ * páginas usam esta constante como reserva.
+ *
+ * Caminho relativo de propósito: o `metadataBase` do layout o torna absoluto,
+ * que é o único formato que o WhatsApp aceita.
+ */
+export const IMAGEM_DE_COMPARTILHAMENTO = {
+  url: "/opengraph-image.png",
+  width: 1200,
+  height: 630,
+  alt: "Casa da Economia Solidária Paul Singer",
+};

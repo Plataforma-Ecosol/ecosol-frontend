@@ -1,9 +1,11 @@
+import { CalendarDays, Clock, MapPin } from "lucide-react";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 
 import { buscarEvento, urlPublicaDeMidia } from "@/lib/api";
-import { formatarQuando } from "@/lib/datas";
+import { formatarDia, formatarHorario, formatarQuando } from "@/lib/datas";
+import { IMAGEM_DE_COMPARTILHAMENTO } from "@/lib/site";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -30,7 +32,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description: descricao,
       url: `/eventos/${evento.slug}`,
       type: "article",
-      images: cartaz ? [{ url: urlPublicaDeMidia(cartaz.imagem) }] : undefined,
+      // Sem cartaz, a logo da Casa: sem nenhuma imagem, o link sairia sem
+      // prévia, porque declarar `openGraph` aqui descarta a do layout.
+      images: cartaz ? [{ url: urlPublicaDeMidia(cartaz.imagem) }] : [IMAGEM_DE_COMPARTILHAMENTO],
     },
   };
 }
@@ -47,26 +51,46 @@ export default async function DetalheDoEvento({ params }: Props) {
   const { slug } = await params;
   const evento = await buscarEvento(slug);
 
+  const variosDias =
+    evento.data_fim !== null &&
+    formatarDia(evento.data_fim) !== formatarDia(evento.data_inicio);
+  const horario = formatarHorario(evento.data_inicio, evento.data_fim);
+
   return (
     <article className="space-y-8">
       <header className="space-y-3">
-        <p className="font-medium text-emerald-800">
-          <time dateTime={evento.data_inicio}>
-            {formatarQuando(evento.data_inicio, evento.data_fim)}
-          </time>
-        </p>
+        {/* Evento de um dia: data e horário em linhas próprias, cada uma com
+            seu ícone. Vários dias: a frase inteira do `formatarQuando`, que
+            separar em dois pedaços deixaria ambígua. */}
+        <div className="flex flex-wrap gap-x-5 gap-y-1 font-medium text-dourado-escuro">
+          <p className="flex items-center gap-1.5">
+            <CalendarDays aria-hidden className="size-4 shrink-0" />
+            <time dateTime={evento.data_inicio}>
+              {variosDias
+                ? formatarQuando(evento.data_inicio, evento.data_fim)
+                : formatarDia(evento.data_inicio)}
+            </time>
+          </p>
+          {!variosDias && horario && (
+            <p className="flex items-center gap-1.5">
+              <Clock aria-hidden className="size-4 shrink-0" />
+              {horario}
+            </p>
+          )}
+        </div>
 
-        <h1 className="text-3xl font-semibold text-emerald-900">{evento.titulo}</h1>
+        <h1 className="text-3xl font-bold text-azul">{evento.titulo}</h1>
 
         {(evento.local || evento.bairro) && (
-          <p className="text-stone-600">
+          <p className="flex items-center gap-1.5 text-texto/75">
+            <MapPin aria-hidden className="size-4 shrink-0 text-dourado-escuro" />
             {[evento.local, evento.bairro].filter(Boolean).join(" · ")}
           </p>
         )}
       </header>
 
       {evento.descricao && (
-        <section className="whitespace-pre-line text-lg leading-relaxed text-stone-800">
+        <section className="whitespace-pre-line text-lg leading-relaxed text-texto">
           {evento.descricao}
         </section>
       )}
@@ -77,7 +101,7 @@ export default async function DetalheDoEvento({ params }: Props) {
             href={evento.link}
             rel="noopener noreferrer"
             target="_blank"
-            className="inline-block rounded bg-emerald-800 px-4 py-2 text-white hover:bg-emerald-900"
+            className="inline-block rounded bg-azul px-4 py-2 text-bege hover:bg-azul/90"
           >
             Mais informações e inscrição
           </a>
@@ -86,7 +110,7 @@ export default async function DetalheDoEvento({ params }: Props) {
 
       {evento.imagens.length > 0 && (
         <section className="space-y-3">
-          <h2 className="text-lg font-medium">Imagens de divulgação</h2>
+          <h2 className="text-lg font-bold">Imagens de divulgação</h2>
 
           <ul className="grid gap-4 sm:grid-cols-2">
             {evento.imagens.map((imagem) => (
@@ -101,10 +125,10 @@ export default async function DetalheDoEvento({ params }: Props) {
                     width={800}
                     height={600}
                     sizes="(min-width: 640px) 50vw, 100vw"
-                    className="h-auto w-full rounded border border-stone-200"
+                    className="h-auto w-full rounded border border-dourado/60"
                   />
                   {imagem.legenda && (
-                    <figcaption className="mt-1 text-sm text-stone-600">
+                    <figcaption className="mt-1 text-sm text-texto/75">
                       {imagem.legenda}
                     </figcaption>
                   )}
@@ -116,7 +140,7 @@ export default async function DetalheDoEvento({ params }: Props) {
       )}
 
       <p>
-        <Link href="/eventos" className="text-emerald-800 hover:underline">
+        <Link href="/eventos" className="text-azul hover:underline">
           ← Ver a agenda
         </Link>
       </p>

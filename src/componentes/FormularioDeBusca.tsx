@@ -43,12 +43,12 @@ export function FormularioDeBusca({
         type="search"
         defaultValue={primeiro(parametros.q) ?? ""}
         placeholder={placeholder}
-        className="min-w-0 flex-1 rounded border border-stone-300 bg-white px-3 py-2"
+        className="min-w-0 flex-1 rounded border border-azul/50 bg-white px-3 py-2"
       />
 
       <button
         type="submit"
-        className="rounded bg-emerald-800 px-4 py-2 text-white hover:bg-emerald-900"
+        className="rounded bg-azul px-4 py-2 text-bege hover:bg-azul/90"
       >
         Buscar
       </button>

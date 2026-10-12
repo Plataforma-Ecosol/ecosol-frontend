@@ -3,6 +3,7 @@ import { permanentRedirect } from "next/navigation";
 
 import { PerfilDoColetivo } from "@/componentes/PerfilDoColetivo";
 import { buscarColetivo } from "@/lib/api";
+import { IMAGEM_DE_COMPARTILHAMENTO } from "@/lib/site";
 
 type Props = {
   // Promise desde o Next 15, e obrigatoriamente aguardado a partir do 16.
@@ -37,6 +38,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description: descricao,
       url: `/coletivos/${coletivo.slug}`,
       type: "profile",
+      // Sem isto o perfil sai sem prévia: declarar `openGraph` aqui descarta o
+      // do layout, imagem inclusive (ver `IMAGEM_DE_COMPARTILHAMENTO`).
+      images: [IMAGEM_DE_COMPARTILHAMENTO],
     },
   };
 }

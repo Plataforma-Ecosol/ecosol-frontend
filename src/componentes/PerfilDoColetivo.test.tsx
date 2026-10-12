@@ -54,6 +54,17 @@ describe("PerfilDoColetivo — sem consentimento", () => {
     expect(texto).not.toContain("null");
   });
 
+  it("não deixa ícone de contato órfão", () => {
+    // O ícone ao lado do rótulo denunciaria o contato escondido do mesmo jeito
+    // que o rótulo sozinho. Ele precisa viver dentro da mesma condição.
+    const { container } = render(<PerfilDoColetivo coletivo={SEM_CONSENTIMENTO} />);
+
+    expect(container.querySelector(".lucide-phone")).toBeNull();
+    expect(container.querySelector(".lucide-mail")).toBeNull();
+    expect(container.querySelector(".lucide-at-sign")).toBeNull();
+    expect(container.querySelector(".lucide-globe")).toBeNull();
+  });
+
   it("ainda assim mostra o que é público", () => {
     render(<PerfilDoColetivo coletivo={SEM_CONSENTIMENTO} />);
 
@@ -87,6 +98,12 @@ describe("PerfilDoColetivo — com consentimento", () => {
     expect(texto).toContain("@atelie");
     expect(texto).not.toContain("Telefone");
     expect(texto).not.toContain("E-mail");
+
+    // Só o ícone do contato autorizado, e decorativo: o texto ao lado é a
+    // informação.
+    expect(container.querySelector(".lucide-at-sign")).toHaveAttribute("aria-hidden", "true");
+    expect(container.querySelector(".lucide-phone")).toBeNull();
+    expect(container.querySelector(".lucide-mail")).toBeNull();
   });
 
   it("abre links externos sem entregar a página de origem", () => {

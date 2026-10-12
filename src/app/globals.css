@@ -1,30 +1,131 @@
 @import "tailwindcss";
 
 /**
+ * Paleta da Casa da Economia Solidária Paul Singer (PRD da paleta de cores).
+ *
+ * Única fonte das cores do site: todo componente usa as classes geradas daqui
+ * (`bg-azul`, `text-texto/75`, `border-dourado`...) e nenhum usa hex solto —
+ * nem o pino do mapa, que lê `var(--color-azul)` por estar fora do Tailwind.
+ * Os mesmos seis valores vão para o Django Admin, num card próprio: mudar uma
+ * cor aqui pede a mesma mudança lá.
+ *
+ * Papéis, e não só cores: azul é marca e ação; bege é fundo; dourado é só
+ * detalhe (borda, divisor, contorno), nunca texto — 2,6:1 sobre branco.
+ * Texto dourado usa `dourado-escuro`. Laranja é acento pontual.
+ */
+@theme {
+  --color-azul: #33469B;
+  --color-bege: #F6F0DC;
+  --color-dourado: #BD9D55;
+  --color-dourado-escuro: #7A6028;
+  --color-laranja: #F65608;
+  --color-texto: #1C1917;
+
+  /*
+   * Tons (PRD da base visual, seção 3). Acréscimo, não troca: os seis tokens
+   * acima continuam sendo "a cor da marca", e cada escala tem o hex base num
+   * dos degraus (azul no 800, dourado no 400, laranja no 500) com o mesmo valor.
+   * Servem para fundo de seção, hover e selo sem sair da identidade.
+   *
+   * Geradas em OKLCH com a curva de luminosidade do Tailwind v4, ancorada no
+   * hex base — o mesmo método do uicolors.app. Croma limitado ao da cor base,
+   * para o dourado não virar mostarda nos degraus escuros. `bege` não tem
+   * escala: ele já é fundo, e `dourado-50`/`100` cobrem os bege mais escuros.
+   *
+   * Contraste medido (WCAG): `azul-800` e `azul` sobre `azul-50` 7,9:1;
+   * `laranja-700` sobre `laranja-50` 5,9:1; `azul-900` sobre branco 10,4:1.
+   * Mudou uma escala aqui, muda também o `UNFOLD["COLORS"]` do Admin.
+   */
+  --color-azul-50: #F4F7FE;
+  --color-azul-100: #E4EAFA;
+  --color-azul-200: #CFD9F6;
+  --color-azul-300: #B0C1F1;
+  --color-azul-400: #869EEB;
+  --color-azul-500: #6882DD;
+  --color-azul-600: #536AC3;
+  --color-azul-700: #4359B0;
+  --color-azul-800: #33469B;
+  --color-azul-900: #2C3C77;
+  --color-azul-950: #182143;
+
+  --color-dourado-50: #F9F6F1;
+  --color-dourado-100: #F0E9DC;
+  --color-dourado-200: #E4D8C0;
+  --color-dourado-300: #D3C095;
+  --color-dourado-400: #BD9D55;
+  --color-dourado-500: #A18239;
+  --color-dourado-600: #886A1D;
+  --color-dourado-700: #755803;
+  --color-dourado-800: #5E4602;
+  --color-dourado-900: #4F3A01;
+  --color-dourado-950: #2F2201;
+
+  --color-laranja-50: #FEF4F1;
+  --color-laranja-100: #FEE5DD;
+  --color-laranja-200: #FED1C2;
+  --color-laranja-300: #FEB299;
+  --color-laranja-400: #FD8258;
+  --color-laranja-500: #F65608;
+  --color-laranja-600: #CA4504;
+  --color-laranja-700: #AB3800;
+  --color-laranja-800: #892B01;
+  --color-laranja-900: #722301;
+  --color-laranja-950: #431100;
+}
+
+/**
  * Estilo base do site.
  *
- * **Não há regra de cor aqui, e é de propósito.** O `create-next-app` gera
+ * **Não há regra de cor no `body`, e é de propósito.** O `create-next-app` gera
  * este arquivo com `body { background: var(--background); color: var(--foreground) }`
  * e um bloco `prefers-color-scheme: dark`. Os dois juntos quebram o site:
  *
  * 1. Uma regra escrita fora de `@layer` vence QUALQUER utilitário do Tailwind,
  *    que mora em camada — independente de especificidade. Então o
- *    `bg-stone-50` do `<body>` no layout nunca chegava a valer.
+ *    fundo do `<body>` no layout nunca chegava a valer.
  * 2. Com isso, em quem usa o sistema em modo escuro o fundo virava `#0a0a0a`,
  *    enquanto todo o texto continuava nas cores escolhidas para fundo claro.
  *    Medido: fundo `rgb(10,10,10)` com texto cinza escuro — ilegível.
  *
  * O MVP tem um tema só, claro (o tema escuro está fora de escopo pelo PRD).
  * Meio tema escuro — fundo trocado, texto não — é pior do que nenhum. As cores
- * ficam onde dá para vê-las: nas classes do `layout.tsx`.
+ * ficam onde dá para vê-las: nas classes do `layout.tsx`, a partir dos tokens
+ * do `@theme` acima.
  */
 
 /**
- * Pilha de fontes do sistema, sem nenhuma fonte externa.
+ * Fonte dos títulos (PRD da base visual, seção 2).
+ *
+ * `--font-bricolage` é declarada pelo `next/font` no `<html>` (ver
+ * `layout.tsx`); o token aponta para ela, e trocar de fonte é trocar só a
+ * variável. `inline` porque o valor depende de uma variável que só existe em
+ * tempo de execução — sem ele o Tailwind resolveria a referência cedo demais.
+ * Gera a classe `font-titulo`, usada nos títulos de cartão.
+ */
+@theme inline {
+  --font-titulo: var(--font-bricolage), system-ui, sans-serif;
+}
+
+/*
+ * Dentro de `@layer base`, e não solta: fora de camada a regra venceria
+ * qualquer classe do Tailwind no título (o mesmo problema descrito acima
+ * sobre o `body`).
+ */
+@layer base {
+  h1,
+  h2 {
+    font-family: var(--font-titulo);
+  }
+}
+
+/**
+ * Pilha de fontes do sistema para o texto corrido.
  *
  * O PRD pede isto explicitamente (Seção 9): baixar uma fonte custa mais no 3G
  * de um smartphone básico — que é o aparelho de boa parte do público — do que
- * entrega em estética. Estas já estão na máquina de quem acessa.
+ * entrega em estética. Estas já estão na máquina de quem acessa. A única
+ * exceção são os títulos, acima: um peso só, subset latino, servido pelo
+ * próprio site.
  */
 body {
   font-family:

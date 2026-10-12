@@ -42,9 +42,9 @@ ENV NODE_ENV=production
 # processo, escapa como root.
 USER node
 
-# Não há `COPY /app/public`: o projeto não tem assets estáticos próprios, e o
-# git não versiona diretório vazio — a linha quebraria o build num clone limpo.
-# Acrescente-a junto com o primeiro arquivo que for para `public/`.
+# `public/` guarda a logo (`public/brand/`): sem esta linha, o site sobe e a
+# logo do cabeçalho e do rodapé sai quebrada, sem erro nenhum no build.
+COPY --from=build --chown=node:node /app/public ./public
 COPY --from=build --chown=node:node /app/.next ./.next
 COPY --from=build --chown=node:node /app/node_modules ./node_modules
 COPY --from=build --chown=node:node /app/package.json ./package.json

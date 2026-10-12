@@ -57,8 +57,8 @@ export default async function Eventos({
   return (
     <section className="space-y-6">
       <header className="space-y-2">
-        <h1 className="text-2xl font-semibold text-emerald-900">Agenda da rede</h1>
-        <p className="text-stone-600">
+        <h1 className="text-2xl font-bold text-azul">Agenda da rede</h1>
+        <p className="text-texto/75">
           {resultado.count === 0
             ? periodo === "proximos"
               ? "Nenhum evento marcado no momento."
@@ -80,8 +80,8 @@ export default async function Eventos({
               aria-current={ativa ? "page" : undefined}
               className={
                 ativa
-                  ? "rounded bg-emerald-800 px-4 py-2 text-white"
-                  : "rounded border border-stone-300 bg-white px-4 py-2 hover:border-stone-500"
+                  ? "rounded bg-azul px-4 py-2 text-bege"
+                  : "rounded border border-azul bg-white px-4 py-2 text-azul hover:bg-azul/10"
               }
             >
               {rotulo}
@@ -97,7 +97,7 @@ export default async function Eventos({
       />
 
       {resultado.results.length === 0 ? (
-        <p className="rounded border border-stone-200 bg-white p-6 text-stone-700">
+        <p className="rounded border border-dourado/60 bg-white p-6 text-texto/85">
           {periodo === "proximos"
             ? "Não há eventos marcados por enquanto. Volte em breve, ou veja os que já aconteceram."
             : "Nada corresponde a esta busca."}

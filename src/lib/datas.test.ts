@@ -13,7 +13,13 @@
  */
 import { describe, expect, it } from "vitest";
 
-import { formatarDataCurta, formatarQuando } from "@/lib/datas";
+import {
+  formatarDataCurta,
+  formatarDia,
+  formatarHorario,
+  formatarQuando,
+  partesDaData,
+} from "@/lib/datas";
 
 describe("formatarQuando", () => {
   it("sem data de fim, mostra só o início", () => {
@@ -79,5 +85,62 @@ describe("formatarQuando", () => {
 describe("formatarDataCurta", () => {
   it("encurta para o cartão da listagem", () => {
     expect(formatarDataCurta("2026-08-15T18:00:00-03:00")).toBe("15 de ago., 18h");
+  });
+});
+
+describe("formatarDia", () => {
+  it("mostra só o dia, por extenso e no fuso de Niterói", () => {
+    expect(formatarDia("2026-10-21T01:30:00Z")).toBe("20 de outubro de 2026");
+  });
+
+  it("devolve o valor cru se a data for impossível de ler", () => {
+    expect(formatarDia("nao é uma data")).toBe("nao é uma data");
+  });
+});
+
+describe("formatarHorario", () => {
+  it("sem fim, mostra só o início", () => {
+    expect(formatarHorario("2026-10-20T14:00:00-03:00", null)).toBe("14h");
+  });
+
+  it("com fim no mesmo dia, mostra o intervalo", () => {
+    expect(
+      formatarHorario("2026-10-20T14:00:00-03:00", "2026-10-20T17:30:00-03:00"),
+    ).toBe("14h às 17h30");
+  });
+
+  it("com fim em outro dia, mostra só o início", () => {
+    // "Das 9h às 18h" num evento de três dias mentiria sobre a duração.
+    expect(
+      formatarHorario("2026-10-20T09:00:00-03:00", "2026-10-22T18:00:00-03:00"),
+    ).toBe("9h");
+  });
+
+  it("devolve vazio para data impossível de ler", () => {
+    expect(formatarHorario("nao é uma data", null)).toBe("");
+  });
+});
+
+describe("partesDaData", () => {
+  it("separa mês, dia e dia da semana, sem ponto e em maiúsculas", () => {
+    expect(partesDaData("2026-08-15T18:00:00-03:00")).toEqual({
+      mes: "AGO",
+      dia: "15",
+      diaDaSemana: "SÁB",
+    });
+  });
+
+  it("usa o dia de Niterói quando o instante já virou o dia em UTC", () => {
+    // 1h30 do dia 21 em UTC é 22h30 do dia 20 em Niterói. Com o fuso de quem
+    // executa (UTC no servidor), o cartão mostraria quarta, 21.
+    expect(partesDaData("2026-10-21T01:30:00Z")).toEqual({
+      mes: "OUT",
+      dia: "20",
+      diaDaSemana: "TER",
+    });
+  });
+
+  it("devolve null para data impossível de ler", () => {
+    expect(partesDaData("nao é uma data")).toBeNull();
   });
 });
