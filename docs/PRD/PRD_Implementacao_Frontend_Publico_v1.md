@@ -149,7 +149,7 @@ Estas três são a razão de a Seção 4.2 existir. Errar qualquer uma produz bu
 
 ### 3.5. Imagens
 
-`imagens[].imagem` (evento) e `imagem_capa` (ponto) vêm como **URL absoluta**. Em produção apontam para o Supabase Storage; no ambiente local, para `http://localhost:8001/media/...`. Ver a armadilha de host na Seção 4.5 — ela morde no Docker.
+`imagens[].imagem` (evento), `imagem_capa` (ponto) e `foto` (coletivo) vêm como **URL absoluta**. `imagem_capa` e `foto` vêm `null` quando não há arquivo — ausência legítima, e não a regra da chave omitida dos contatos. `foto_descricao` (texto, pode vir vazio) é o `alt` da foto do coletivo. (Alterado pelo PRD de fotos, `PRD_Fotos_Cartao_e_Abertura_v1.md`; antes: a foto do coletivo não existia.) Em produção apontam para o Supabase Storage; no ambiente local, para `http://localhost:8001/media/...`. Ver a armadilha de host na Seção 4.5 — ela morde no Docker.
 
 ---
 
@@ -192,6 +192,11 @@ export interface Coletivo {
   descricao: string;
   bairro: string;
   site: string;
+  // URL absoluta, ou `null` sem foto — como o `imagem_capa` do ponto. Não é
+  // contato: aqui não vale a regra da chave omitida (PRD de fotos).
+  foto: string | null;
+  // `alt` da foto, escrito pela equipe no Admin. Pode vir vazio.
+  foto_descricao: string;
   categorias: CategoriaResumo[];
   criado_em: string;
   atualizado_em: string;
@@ -312,7 +317,11 @@ Onde cada caso cai:
 | Local, Next fora do Docker | `False` | `http://localhost:8001/media/...` | Não |
 | Local, Next dentro do compose | `False` | `http://backend:8001/media/...` | **Sim** |
 
-**Solução prescrita:** uma função `urlPublicaDeMidia(url)` em `src/lib/api.ts`, aplicada por todo componente que exibe imagem. Ela troca o host interno pelo host público quando as duas variáveis diferem, e é no-op quando são iguais — o que faz dela um no-op em produção. É pequena, tem uma responsabilidade só, e evita um bug que se manifesta apenas no ambiente que a equipe usa para conferir visual.
+**Solução prescrita:** uma função `urlPublicaDeMidia(url)` em `src/lib/api.ts`, aplicada a toda URL de imagem que **o navegador recebe direto** (`og:image`, `<a href>`). Ela troca o host interno pelo host público quando as duas variáveis diferem, e é no-op quando são iguais — o que faz dela um no-op em produção. É pequena, tem uma responsabilidade só, e evita um bug que se manifesta apenas no ambiente que a equipe usa para conferir visual.
+
+**Exceção: o `src` do `next/image` NÃO passa por ela.** O navegador nunca recebe esse endereço — recebe `/_next/image?url=...`, e quem busca a imagem é o otimizador, no servidor do Next. Dentro do compose, `localhost:8001` é o próprio container do frontend, e a imagem quebrava com `ECONNREFUSED`. O `src` é a URL como a API devolveu (`backend:8001` no compose), que o servidor alcança. (Corrigido depois do PRD de fotos; antes, este texto mandava aplicar a função em todo componente que exibe imagem, e as fotos dos eventos quebravam no Docker.)
+
+O `Dockerfile` precisa copiar o `next.config.ts` para a imagem final: o `next start` o relê ao subir, e sem ele o otimizador roda sem `remotePatterns`.
 
 Além disso, `next.config.ts` precisa declarar os hosts permitidos em `images.remotePatterns` (o domínio do Supabase e `localhost:8001`), senão o `next/image` recusa a URL externa.
 
@@ -336,7 +345,7 @@ Amarrar a `NODE_ENV` parece equivalente e **não é**: `npm run start` e o conta
 
 | Rota | Consome | Renderização | Conteúdo |
 |---|---|---|---|
-| `/` | listagens, poucos itens | Sob demanda | Apresentação da rede, coletivos em destaque, próximos eventos, chamada para o mapa |
+| `/` | listagens, poucos itens | Sob demanda | Abertura com foto, chamadas e números da rede, coletivos em destaque, próximos eventos, chamada para o mapa (PRD de fotos) |
 | `/coletivos` | `GET /api/coletivos/` | Sob demanda | Busca, filtro por categoria e bairro, paginação — tudo na URL |
 | `/coletivos/[slug]` | `GET /api/coletivos/{slug}/` | Sob demanda | Perfil público; `404`; **canônico via `308`** |
 | `/eventos` | `GET /api/eventos/?periodo=proximos` | Sob demanda | Agenda; alternar próximos/passados |
@@ -511,7 +520,7 @@ O `next build` no CI não é redundante: ele é o único passo que pega o erro d
 **Desempenho** (requisito de 500 ms, Seção 7 do v4.1) — a parte cara é a chamada à API, já otimizada no backend. No frontend:
 
 - `revalidate` de 60 s nas listagens e 300 s nos detalhes, **no cache de `fetch`**. Como nenhuma página é pré-renderizada (Seção 4.3), é daí que vem a velocidade. O cadastro muda algumas vezes por semana; consultar a API a cada visita seria desperdício.
-- `next/image` com `sizes` correto — a galeria de evento é o único lugar com imagem pesada.
+- `next/image` com `sizes` correto — galeria de evento, foto do cartão do coletivo e foto da abertura da home. (Alterado pelo PRD de fotos, `PRD_Fotos_Cartao_e_Abertura_v1.md`; antes: a galeria de evento era o único lugar com imagem pesada.)
 - Uma fonte só nos títulos, via `next/font`, um peso e subset latino, servida pelo próprio site. Texto corrido na fonte do sistema. (Alterado pelo PRD da base visual, `PRD_Base_Visual_v1.md`; antes: nenhuma fonte externa.)
 
 **SEO** (o propósito do projeto):
