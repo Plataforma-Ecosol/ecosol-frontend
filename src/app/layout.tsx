@@ -95,8 +95,9 @@ export default function RootLayout({
             <Logo lugar="rodape" />
             <div>
               <p>
-                Centro Público de Referência em Economia Solidária (Casa Paul
-                Singer) · ITES / IFRJ Campus Niterói
+                Esta plataforma é mantida pelo Centro Público de Referência em
+                Economia Solidária (Casa Paul Singer), em parceria com o ITES e o
+                IFRJ Campus Niterói.
               </p>
               <p className="mt-1">Software livre, sob licença GPLv3.</p>
               {/* Só quem já sabe o que procura encontra: nada em destaque,
