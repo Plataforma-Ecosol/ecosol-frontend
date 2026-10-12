@@ -20,6 +20,8 @@ const BASE: Coletivo = {
   descricao: "Agroecologia urbana no Fonseca.",
   bairro: "Fonseca",
   site: "https://exemplo.org",
+  foto: null,
+  foto_descricao: "",
   categorias: [{ id: 3, nome: "Agroecologia", slug: "agroecologia" }],
   criado_em: "2026-08-01T10:00:00-03:00",
   atualizado_em: "2026-08-01T10:00:00-03:00",
@@ -86,5 +88,40 @@ describe("CartaoColetivo", () => {
     expect(href).toContain("bairro=Fonseca");
     // A página volta para a primeira: o filtro novo muda o tamanho do resultado.
     expect(href).not.toContain("page=");
+  });
+
+  describe("foto", () => {
+    const COM_FOTO: Coletivo = {
+      ...BASE,
+      foto: "http://localhost:8001/media/coletivos/abc.jpg",
+      foto_descricao: "Integrantes do coletivo na barraca da feira",
+    };
+
+    it("usa a descrição da foto como texto alternativo e declara `sizes`", () => {
+      render(<CartaoColetivo coletivo={COM_FOTO} parametros={{}} />);
+
+      const foto = screen.getByRole("img", {
+        name: "Integrantes do coletivo na barraca da feira",
+      });
+      expect(foto).toHaveAttribute("sizes");
+    });
+
+    it("sem descrição, o texto alternativo diz de quem é a foto", () => {
+      render(
+        <CartaoColetivo coletivo={{ ...COM_FOTO, foto_descricao: "" }} parametros={{}} />,
+      );
+
+      expect(
+        screen.getByRole("img", { name: "Foto do coletivo Sementes do Vale" }),
+      ).toBeInTheDocument();
+    });
+
+    it("sem foto, mostra as iniciais escondidas do leitor de tela", () => {
+      const { container } = render(<CartaoColetivo coletivo={BASE} parametros={{}} />);
+
+      expect(container.querySelector("img")).toBeNull();
+      const iniciais = screen.getByText("SV");
+      expect(iniciais.closest("[aria-hidden]")).not.toBeNull();
+    });
   });
 });

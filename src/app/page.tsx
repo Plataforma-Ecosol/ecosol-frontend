@@ -1,8 +1,9 @@
 import Link from "next/link";
 
+import { AberturaDaHome } from "@/componentes/AberturaDaHome";
 import { CartaoColetivo } from "@/componentes/CartaoColetivo";
 import { CartaoEvento } from "@/componentes/CartaoEvento";
-import { listarColetivos, listarEventos } from "@/lib/api";
+import { listarColetivos, listarEventos, listarPontos } from "@/lib/api";
 
 /**
  * Página inicial — apresentação da rede e porta de entrada.
@@ -10,16 +11,21 @@ import { listarColetivos, listarEventos } from "@/lib/api";
  * Mostra alguns coletivos de verdade, e não só texto: quem chega pela primeira
  * vez precisa ver que existe gente ali. Os próximos eventos entram no PR O,
  * junto com a formatação de datas.
+ *
+ * A abertura (título, chamadas e números da rede) mora em `AberturaDaHome`;
+ * aqui só se buscam os dados.
  */
 export default async function Home() {
   // Os seis primeiros em ordem alfabética. Não há campo "destaque" no
   // cadastro, e inventar um critério de destaque no frontend seria decidir
   // sozinho quem a rede promove — isso é decisão da equipe, no Admin.
-  // As duas chamadas em paralelo: encadeadas com `await` seguido de `await`, a
-  // home esperaria a soma das duas em vez da mais lenta.
-  const [coletivos, eventos] = await Promise.all([
+  // As chamadas em paralelo: encadeadas com `await` seguido de `await`, a
+  // home esperaria a soma de todas em vez da mais lenta. Dos pontos só
+  // interessa o `count`, para os números da abertura — daí `page_size: 1`.
+  const [coletivos, eventos, pontos] = await Promise.all([
     listarColetivos({ ordering: "nome" }),
     listarEventos({ periodo: "proximos", ordering: "data_inicio" }),
+    listarPontos({ page_size: 1 }),
   ]);
 
   const destaques = coletivos.results.slice(0, 6);
@@ -27,22 +33,16 @@ export default async function Home() {
 
   return (
     <div className="space-y-12">
-      <section className="max-w-prose">
-        <h1 className="text-3xl font-bold text-azul">
-          Rede de Economia Solidária de Niterói
-        </h1>
-
-        <p className="mt-4 text-lg text-texto/85">
-          Coletivos, feiras, lojas e a agenda da economia solidária da cidade,
-          reunidos em um só lugar.
-        </p>
-
-        <p className="mt-4 text-texto/75">
-          Esta plataforma é mantida pelo Centro Público de Referência em
-          Economia Solidária (Casa Paul Singer), em parceria com o ITES e o IFRJ
-          Campus Niterói.
-        </p>
-      </section>
+      {/* A foto da feira entra num commit próprio, quando a Casa Paul Singer
+          enviá-la com a autorização de uso de imagem. Até lá, a abertura fica
+          em uma coluna só. */}
+      <AberturaDaHome
+        totais={{
+          coletivos: coletivos.count,
+          pontos: pontos.count,
+          eventos: eventos.count,
+        }}
+      />
 
       {destaques.length > 0 && (
         <section className="space-y-4">

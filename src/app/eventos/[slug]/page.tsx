@@ -117,7 +117,11 @@ export default async function DetalheDoEvento({ params }: Props) {
               <li key={imagem.id}>
                 <figure>
                   <Image
-                    src={urlPublicaDeMidia(imagem.imagem)}
+                    // A URL como a API devolve, SEM `urlPublicaDeMidia`: quem
+                    // busca o `src` do `next/image` é o servidor do Next (o
+                    // navegador só vê `/_next/image`), e no compose só ele
+                    // alcança `backend:8001`.
+                    src={imagem.imagem}
                     // A legenda é o texto alternativo quando existe. Sem ela,
                     // descrever o papel da imagem é melhor do que `alt=""`:
                     // um cartaz não é decoração, é a informação do evento.

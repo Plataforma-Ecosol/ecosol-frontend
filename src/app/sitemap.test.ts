@@ -21,7 +21,8 @@ const { default: sitemap } = await import("@/app/sitemap");
 
 function coletivo(slug: string): Coletivo {
   return {
-    id: 1, nome: slug, slug, descricao: "", bairro: "", site: "", categorias: [],
+    id: 1, nome: slug, slug, descricao: "", bairro: "", site: "",
+    foto: null, foto_descricao: "", categorias: [],
     criado_em: "2026-08-01T10:00:00-03:00",
     atualizado_em: "2026-08-02T10:00:00-03:00",
   };

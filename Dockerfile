@@ -48,6 +48,10 @@ COPY --from=build --chown=node:node /app/public ./public
 COPY --from=build --chown=node:node /app/.next ./.next
 COPY --from=build --chown=node:node /app/node_modules ./node_modules
 COPY --from=build --chown=node:node /app/package.json ./package.json
+# O `next start` relê o `next.config.ts` ao subir. Sem ele o otimizador de
+# imagens roda sem `remotePatterns` e recusa toda foto do backend com
+# `400 "url" parameter is not allowed` — de novo sem erro nenhum no build.
+COPY --from=build --chown=node:node /app/next.config.ts ./next.config.ts
 
 EXPOSE 3000
 CMD ["npm", "run", "start"]

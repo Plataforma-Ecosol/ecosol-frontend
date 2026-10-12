@@ -38,6 +38,8 @@ const COLETIVO: Coletivo = {
   descricao: "Artesanato têxtil em Niterói.",
   bairro: "Centro",
   site: "",
+  foto: null,
+  foto_descricao: "",
   categorias: [],
   criado_em: "2026-08-01T10:00:00-03:00",
   atualizado_em: "2026-08-01T10:00:00-03:00",
