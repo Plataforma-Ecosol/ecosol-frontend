@@ -42,6 +42,14 @@ export interface Coletivo {
   descricao: string;
   bairro: string;
   site: string;
+  /**
+   * URL absoluta da foto. `null` quando o coletivo não tem foto: ausência
+   * legítima, no mesmo formato do `imagem_capa` do ponto. Não é contato, então
+   * aqui não vale a regra da chave omitida.
+   */
+  foto: string | null;
+  /** Texto alternativo da foto, escrito pela equipe no Admin. Pode vir vazio. */
+  foto_descricao: string;
   categorias: CategoriaResumo[];
   criado_em: string;
   atualizado_em: string;

@@ -76,7 +76,8 @@ export default async function Coletivos({
           acima para ver a rede inteira.
         </p>
       ) : (
-        <ul className="grid gap-4 sm:grid-cols-2">
+        // Mesma grade da home: o `sizes` da foto do cartão conta com ela.
+        <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {resultado.results.map((coletivo) => (
             <li key={coletivo.id}>
               <CartaoColetivo coletivo={coletivo} parametros={parametros} />

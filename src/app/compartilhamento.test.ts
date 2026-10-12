@@ -13,7 +13,7 @@ import type { Coletivo, Evento } from "@/tipos/api";
 
 const coletivo: Coletivo = {
   id: 1, nome: "Sementes do Vale", slug: "sementes-do-vale", descricao: "",
-  bairro: "", site: "", categorias: [],
+  bairro: "", site: "", foto: null, foto_descricao: "", categorias: [],
   criado_em: "2026-08-01T10:00:00-03:00", atualizado_em: "2026-08-02T10:00:00-03:00",
 };
 
