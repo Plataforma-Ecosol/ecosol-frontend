@@ -87,6 +87,12 @@ export function montarUrl(caminho: string, parametros: Parametros = {}): string 
  * Em produção (`DJANGO_USE_S3=True`) a URL já vem do Supabase Storage e não
  * depende do host, então esta função é no-op — como também é sempre que
  * `API_URL` e `API_URL_PUBLICA` coincidem.
+ *
+ * **Só para URL que o navegador recebe direto** (`og:image`, `<a href>`,
+ * `<img>` sem otimização). NÃO usar no `src` do `next/image`: quem busca esse
+ * endereço é o otimizador, no servidor do Next, e dentro do compose
+ * `localhost:8001` é o próprio container do frontend — a imagem quebra com
+ * `ECONNREFUSED`. Lá vai a URL como a API devolveu, que o servidor alcança.
  */
 export function urlPublicaDeMidia(url: string): string {
   if (BASE === BASE_PUBLICA || !url.startsWith(BASE)) return url;
