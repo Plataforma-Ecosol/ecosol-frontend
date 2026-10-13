@@ -2,7 +2,8 @@ import { MapPin } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
-import { comParametros, type ParametrosDaRota } from "@/lib/consulta";
+import { Badge } from "@/componentes/ui/badge";
+import { comParametros, todos, type ParametrosDaRota } from "@/lib/consulta";
 import { iniciaisDoNome } from "@/lib/iniciais";
 import type { Coletivo } from "@/tipos/api";
 
@@ -27,6 +28,10 @@ const TAMANHOS_DA_FOTO = "(min-width: 1024px) 320px, (min-width: 640px) 50vw, 10
  * filtro `bairro` compara o valor inteiro (`iexact`), então um campo de texto
  * livre erraria a cada acento ou abreviação. Clicando, o valor está sempre
  * correto por construção.
+ *
+ * A categoria clicada SOMA às já marcadas, em vez de trocá-las: os filtros
+ * combinam com "e", e o cartão clicado está no resultado justamente por ter
+ * as categorias marcadas — somar a dele estreita a lista sem esvaziá-la.
  *
  * O cartão inteiro abre o perfil, pelo "link esticado": o `::after` do link
  * do nome cobre o `article`, que é `relative`. Envolver o cartão num `<a>` não
@@ -102,15 +107,16 @@ export function CartaoColetivo({
           <ul className="mt-3 flex flex-wrap gap-2">
             {coletivo.categorias.map((categoria) => (
               <li key={categoria.id}>
-                <Link
-                  href={`/coletivos${comParametros(parametros, {
-                    categoria: categoria.id,
-                    page: undefined,
-                  })}`}
-                  className="relative z-10 inline-block rounded-full border border-dourado bg-bege px-3 py-1 text-sm text-azul hover:bg-azul hover:text-bege"
-                >
-                  {categoria.nome}
-                </Link>
+                <Badge asChild variant="secondary" className="relative z-10">
+                  <Link
+                    href={`/coletivos${comParametros(parametros, {
+                      categoria: [...todos(parametros.categoria), String(categoria.id)],
+                      page: undefined,
+                    })}`}
+                  >
+                    {categoria.nome}
+                  </Link>
+                </Badge>
               </li>
             ))}
           </ul>

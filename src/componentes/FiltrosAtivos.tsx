@@ -1,59 +1,76 @@
+import { X } from "lucide-react";
 import Link from "next/link";
 
-import { comParametros, primeiro, type ParametrosDaRota } from "@/lib/consulta";
+import { Badge } from "@/componentes/ui/badge";
+import { Button } from "@/componentes/ui/button";
+import { comParametros, todos, type ParametrosDaRota } from "@/lib/consulta";
+import type { FiltroAtivo } from "@/lib/filtros";
 
 /**
  * Mostra os filtros em vigor, cada um removível.
  *
- * Existe por um motivo concreto: os filtros de categoria e bairro são
- * aplicados clicando em um cartão, e depois disso a única pista de que a
+ * Existe por um motivo concreto: sem estes chips, a única pista de que a
  * listagem está recortada seria a barra de endereço. Quem chega por um link
- * compartilhado não viu o clique acontecer — sem estes rótulos, veria uma
- * lista incompleta achando que é a rede inteira.
+ * compartilhado não viu o filtro ser aplicado — veria uma lista incompleta
+ * achando que é a rede inteira.
  *
- * O rótulo da categoria é o `id`, e não o nome: a URL carrega `?categoria=3`
- * e o catálogo de categorias não é exposto pela API, então traduzir o número
- * exigiria uma chamada que não existe. Quando a categoria filtrada aparece em
- * algum cartão da página, o nome é recuperado dali.
+ * Serve às duas listagens: quem decide quais filtros existem e o texto de
+ * cada chip é `lib/filtros.ts`. Cada chip tira só o seu valor — com duas
+ * categorias marcadas, remover uma mantém a outra.
+ *
+ * "Limpar tudo" só aparece com dois filtros ou mais: com um só, o próprio
+ * chip já faz isso. E ele mantém a busca digitada (e, na agenda, a aba) — a
+ * busca tem o próprio campo, e quem limpa os filtros não espera perder o que
+ * escreveu.
+ *
+ * Sem contêiner próprio: os chips entram na mesma linha do botão do painel
+ * de filtros, que a página monta.
  */
 export function FiltrosAtivos({
+  filtros,
   parametros,
   rota,
-  nomeDaCategoria,
 }: {
+  filtros: FiltroAtivo[];
   parametros: ParametrosDaRota;
   rota: string;
-  nomeDaCategoria?: string;
 }) {
-  const categoria = primeiro(parametros.categoria);
-  const bairro = primeiro(parametros.bairro);
+  if (filtros.length === 0) return null;
 
-  const ativos = [
-    categoria && {
-      chave: "categoria",
-      rotulo: `Categoria: ${nomeDaCategoria ?? categoria}`,
-    },
-    bairro && { chave: "bairro", rotulo: `Bairro: ${bairro}` },
-  ].filter((filtro): filtro is { chave: string; rotulo: string } => Boolean(filtro));
+  const semEste = ({ chave, valor }: FiltroAtivo) =>
+    comParametros(parametros, {
+      [chave]: todos(parametros[chave]).filter((atual) => atual !== valor),
+      page: undefined,
+    });
 
-  if (ativos.length === 0) return null;
+  const semNenhum = comParametros(parametros, {
+    ...Object.fromEntries(filtros.map(({ chave }) => [chave, undefined])),
+    page: undefined,
+  });
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
-      <span className="text-sm text-texto/75">Filtrando por:</span>
-
-      {ativos.map(({ chave, rotulo }) => (
-        <Link
-          key={chave}
-          href={`${rota}${comParametros(parametros, { [chave]: undefined, page: undefined })}`}
-          className="inline-flex items-center gap-1 rounded-full border border-azul bg-white px-3 py-1 text-sm text-azul hover:bg-azul/10"
-        >
-          {rotulo}
-          {/* O × é decorativo; quem usa leitor de tela ouve o texto abaixo. */}
-          <span aria-hidden="true">×</span>
-          <span className="sr-only">(remover este filtro)</span>
-        </Link>
+    <>
+      {filtros.map((filtro) => (
+        <Badge key={`${filtro.chave}-${filtro.valor}`} asChild className="pr-1.5">
+          <Link href={`${rota}${semEste(filtro)}`}>
+            {filtro.rotulo}
+            {/* O × é decorativo; quem usa leitor de tela ouve o texto abaixo. */}
+            <span
+              aria-hidden="true"
+              className="flex size-5 items-center justify-center rounded-full bg-bege/20"
+            >
+              <X className="size-3.5" />
+            </span>{" "}
+            <span className="sr-only">(remover este filtro)</span>
+          </Link>
+        </Badge>
       ))}
-    </div>
+
+      {filtros.length >= 2 && (
+        <Button asChild variant="link" className="px-2">
+          <Link href={`${rota}${semNenhum}`}>Limpar tudo</Link>
+        </Button>
+      )}
+    </>
   );
 }

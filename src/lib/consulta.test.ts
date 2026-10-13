@@ -7,7 +7,7 @@
  */
 import { describe, expect, it } from "vitest";
 
-import { comParametros, paginaAtual, primeiro } from "@/lib/consulta";
+import { comParametros, paginaAtual, primeiro, todos } from "@/lib/consulta";
 
 describe("primeiro", () => {
   it("devolve o valor quando é único", () => {
@@ -25,7 +25,33 @@ describe("primeiro", () => {
   });
 });
 
+describe("todos", () => {
+  it("devolve a lista de valores, sem vazio nem repetição", () => {
+    expect(todos(["1", "3", "", "1"])).toEqual(["1", "3"]);
+  });
+
+  it("aceita valor único e ausência", () => {
+    expect(todos("1")).toEqual(["1"]);
+    expect(todos(undefined)).toEqual([]);
+    expect(todos("")).toEqual([]);
+  });
+});
+
 describe("comParametros", () => {
+  it("mantém a chave repetida", () => {
+    // Trocar de página com duas categorias marcadas não pode perder uma.
+    const busca = new URLSearchParams(comParametros({ categoria: ["1", "3"] }, { page: 2 }));
+
+    expect(busca.getAll("categoria")).toEqual(["1", "3"]);
+  });
+
+  it("escreve uma lista como chave repetida, e lista vazia remove a chave", () => {
+    const busca = new URLSearchParams(comParametros({ categoria: "1" }, { categoria: [1, 3] }));
+    expect(busca.getAll("categoria")).toEqual(["1", "3"]);
+
+    expect(comParametros({ categoria: ["1", "3"] }, { categoria: [] })).toBe("");
+  });
+
   it("preserva os filtros atuais", () => {
     expect(comParametros({ bairro: "Centro", q: "feira" }, {})).toContain("bairro=Centro");
   });

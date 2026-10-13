@@ -28,6 +28,23 @@ export interface CategoriaResumo {
   slug: string;
 }
 
+/**
+ * Opções do painel de filtros de coletivos (`/api/filtros/coletivos/`).
+ *
+ * Só o que está em uso por algum coletivo ativo: oferecer uma categoria sem
+ * coletivo nenhum levaria a um resultado vazio de propósito. `bairros` vem
+ * com a grafia cadastrada, sem repetição por maiúscula ou minúscula.
+ */
+export interface OpcoesDeFiltroDeColetivo {
+  categorias: CategoriaResumo[];
+  bairros: string[];
+}
+
+/** Opções do painel de filtros da agenda (`/api/filtros/eventos/`). */
+export interface OpcoesDeFiltroDeEvento {
+  bairros: string[];
+}
+
 /** Coletivo como ele aparece aninhado em outro recurso — o cartão de visita. */
 export interface ColetivoResumo {
   id: number;

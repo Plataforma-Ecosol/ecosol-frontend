@@ -51,6 +51,15 @@ describe("montarUrl", () => {
   });
 });
 
+describe("montarUrl com lista", () => {
+  it("repete a chave para cada valor, sem os vazios", () => {
+    // É o formato com que o backend combina categorias.
+    const url = new URL(montarUrl("/api/coletivos/", { categoria: ["1", "", "3"] }));
+
+    expect(url.searchParams.getAll("categoria")).toEqual(["1", "3"]);
+  });
+});
+
 describe("urlPublicaDeMidia", () => {
   it("devolve a URL intacta quando as duas bases coincidem", () => {
     // É o caso do ambiente local sem Docker e o de produção — ou seja, o

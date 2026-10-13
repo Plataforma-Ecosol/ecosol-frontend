@@ -1,6 +1,7 @@
 import { AtSign, Globe, Mail, MapPin, Phone } from "lucide-react";
 import Link from "next/link";
 
+import { Badge } from "@/componentes/ui/badge";
 import { arrobaDoInstagram, urlDoInstagram, urlDoSite } from "@/lib/contatos";
 import type { Coletivo } from "@/tipos/api";
 
@@ -49,12 +50,9 @@ export function PerfilDoColetivo({ coletivo }: { coletivo: Coletivo }) {
           <ul className="flex flex-wrap gap-2">
             {coletivo.categorias.map((categoria) => (
               <li key={categoria.id}>
-                <Link
-                  href={`/coletivos?categoria=${categoria.id}`}
-                  className="inline-block rounded-full border border-dourado bg-bege px-3 py-1 text-sm text-azul hover:bg-azul hover:text-bege"
-                >
-                  {categoria.nome}
-                </Link>
+                <Badge asChild variant="secondary">
+                  <Link href={`/coletivos?categoria=${categoria.id}`}>{categoria.nome}</Link>
+                </Badge>
               </li>
             ))}
           </ul>
