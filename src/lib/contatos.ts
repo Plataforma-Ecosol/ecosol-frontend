@@ -45,3 +45,26 @@ export function urlDoSite(valor: string): string | undefined {
   if (!limpo) return undefined;
   return /^https?:\/\//i.test(limpo) ? limpo : `https://${limpo}`;
 }
+
+/**
+ * O texto do botão do site: o endereço sem esquema, sem `www.` e sem a barra
+ * do fim. `https://www.sementesdovale.org/` vira `sementesdovale.org`.
+ *
+ * O caminho fica: num agregador de links (`linktr.ee/sementes`) é ele que
+ * identifica o coletivo. O texto sai do valor cadastrado, e não do `URL`
+ * montado, porque o `URL` converte domínio acentuado para punycode
+ * (`xn--...`), que ninguém reconhece. O `URL` só confere que é um endereço;
+ * se não for, o texto volta como veio.
+ */
+export function textoDoSite(valor: string): string {
+  try {
+    new URL(valor);
+  } catch {
+    return valor;
+  }
+  return valor
+    .trim()
+    .replace(/^https?:\/\//i, "")
+    .replace(/^www\./i, "")
+    .replace(/\/$/, "");
+}

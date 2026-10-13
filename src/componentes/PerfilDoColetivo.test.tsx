@@ -6,7 +6,7 @@
  * nunca mostra contato nenhum; sem o caso "sem consentimento", passaria com um
  * que mostra tudo sempre.
  */
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
 import { PerfilDoColetivo } from "@/componentes/PerfilDoColetivo";
@@ -67,6 +67,13 @@ describe("PerfilDoColetivo — sem consentimento", () => {
     expect(container.querySelector(".lucide-globe")).toBeNull();
   });
 
+  it("não mostra o bloco de contato nem o botão de copiar", () => {
+    const { container } = render(<PerfilDoColetivo coletivo={SEM_CONSENTIMENTO} />);
+
+    expect(container.textContent).not.toContain("Fale com o coletivo");
+    expect(container.querySelector(".lucide-copy")).toBeNull();
+  });
+
   it("ainda assim mostra o que é público", () => {
     render(<PerfilDoColetivo coletivo={SEM_CONSENTIMENTO} />);
 
@@ -84,7 +91,7 @@ describe("PerfilDoColetivo — com consentimento", () => {
       "href",
       "mailto:contato@sementesdovale.org",
     );
-    expect(screen.getByRole("link", { name: "@sementesdovale" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "@sementesdovale (abre em nova aba)" })).toHaveAttribute(
       "href",
       "https://instagram.com/sementesdovale",
     );
@@ -111,7 +118,64 @@ describe("PerfilDoColetivo — com consentimento", () => {
   it("abre links externos sem entregar a página de origem", () => {
     render(<PerfilDoColetivo coletivo={COM_CONSENTIMENTO} />);
 
-    const instagram = screen.getByRole("link", { name: "@sementesdovale" });
+    const instagram = screen.getByRole("link", { name: "@sementesdovale (abre em nova aba)" });
     expect(instagram).toHaveAttribute("rel", expect.stringContaining("noopener"));
+  });
+});
+
+describe("PerfilDoColetivo — botões de contato", () => {
+  function linksDeContato() {
+    const bloco = screen.getByRole("heading", { name: "Fale com o coletivo" }).closest("section");
+    return within(bloco as HTMLElement).queryAllByRole("link");
+  }
+
+  it("põe os contatos na ordem Instagram, e-mail, site", () => {
+    render(<PerfilDoColetivo coletivo={COM_CONSENTIMENTO} />);
+
+    expect(linksDeContato().map((link) => link.getAttribute("href"))).toEqual([
+      "https://instagram.com/sementesdovale",
+      "mailto:contato@sementesdovale.org",
+      "https://sementesdovale.org",
+    ]);
+  });
+
+  it("destaca o primeiro contato presente, qualquer que seja", () => {
+    // Sem Instagram, o destaque passa para o e-mail, e não fica num botão
+    // de um contato que o coletivo não autorizou.
+    const semInstagram: Coletivo = { ...COM_CONSENTIMENTO, instagram: undefined };
+    render(<PerfilDoColetivo coletivo={semInstagram} />);
+
+    const [email, site] = linksDeContato();
+    expect(email).toHaveAttribute("data-variant", "default");
+    expect(site).toHaveAttribute("data-variant", "outline");
+  });
+
+  it("mostra o site sem esquema, com o endereço completo no link", () => {
+    render(<PerfilDoColetivo coletivo={COM_CONSENTIMENTO} />);
+
+    const site = screen.getByRole("link", { name: /^sementesdovale\.org/ });
+    expect(site).toHaveAttribute("href", "https://sementesdovale.org");
+  });
+
+  it("avisa que Instagram e site abrem em nova aba, e o e-mail não", () => {
+    render(<PerfilDoColetivo coletivo={COM_CONSENTIMENTO} />);
+
+    const [instagram, email, site] = linksDeContato();
+    expect(instagram).toHaveTextContent("(abre em nova aba)");
+    expect(site).toHaveTextContent("(abre em nova aba)");
+    expect(site).toHaveAttribute("target", "_blank");
+    expect(email).not.toHaveTextContent("(abre em nova aba)");
+    expect(email).not.toHaveAttribute("target");
+  });
+
+  it("só com telefone: nenhum link de contato, e o número com rótulo para o leitor de tela", () => {
+    const soTelefone: Coletivo = { ...SEM_CONSENTIMENTO, telefone: "(21) 99999-0000" };
+    render(<PerfilDoColetivo coletivo={soTelefone} />);
+
+    expect(linksDeContato()).toHaveLength(0);
+    const rotulo = screen.getByText("Telefone:");
+    expect(rotulo).toHaveClass("sr-only");
+    // Sem `tel:`: o formato é livre, e o link exigiria adivinhar DDI e DDD.
+    expect(document.querySelector('a[href^="tel:"]')).toBeNull();
   });
 });
