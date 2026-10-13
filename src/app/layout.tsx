@@ -8,6 +8,7 @@
  */
 import type { Metadata } from "next";
 import { Bricolage_Grotesque } from "next/font/google";
+import Link from "next/link";
 
 import Logo from "@/componentes/Logo";
 import { NavegacaoPrincipal } from "@/componentes/NavegacaoPrincipal";
@@ -97,7 +98,13 @@ export default function RootLayout({
               <p>
                 Esta plataforma é mantida pelo Centro Público de Referência em
                 Economia Solidária (Casa Paul Singer), em parceria com o ITES e o
-                IFRJ Campus Niterói.
+                IFRJ Campus Niterói.{" "}
+                <Link
+                  href="/saiba-mais#contato"
+                  className="text-bege/80 underline hover:text-bege"
+                >
+                  Fale com a Casa
+                </Link>
               </p>
               <p className="mt-1">Software livre, sob licença GPLv3.</p>
               {/* Só quem já sabe o que procura encontra: nada em destaque,

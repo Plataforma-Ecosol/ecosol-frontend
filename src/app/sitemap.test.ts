@@ -61,7 +61,7 @@ beforeEach(() => {
 });
 
 describe("sitemap", () => {
-  it("lista as quatro páginas fixas mesmo sem cadastro nenhum", async () => {
+  it("lista as páginas fixas mesmo sem cadastro nenhum", async () => {
     const mapa = await sitemap();
 
     expect(mapa.map((e) => e.url)).toEqual([
@@ -69,6 +69,7 @@ describe("sitemap", () => {
       "http://localhost:3000/coletivos",
       "http://localhost:3000/eventos",
       "http://localhost:3000/mapa",
+      "http://localhost:3000/saiba-mais",
     ]);
   });
 

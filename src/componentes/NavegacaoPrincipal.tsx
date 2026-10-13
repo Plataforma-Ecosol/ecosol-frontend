@@ -20,12 +20,13 @@ const NAVEGACAO = [
   { href: "/coletivos", rotulo: "Coletivos" },
   { href: "/eventos", rotulo: "Agenda" },
   { href: "/mapa", rotulo: "Mapa" },
+  { href: "/saiba-mais", rotulo: "Saiba mais" },
 ];
 
 /**
  * `page` na própria página da seção; `true` numa subpágina dela (o perfil de
  * um coletivo está "dentro" de Coletivos). Os dois têm o mesmo destaque. Na
- * home nada fica ativo: ela não é nenhuma das três seções.
+ * home nada fica ativo: ela não é nenhuma das seções.
  */
 function estadoDoLink(rota: string, href: string): "page" | "true" | undefined {
   if (rota === href) return "page";
