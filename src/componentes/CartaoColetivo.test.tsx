@@ -90,6 +90,25 @@ describe("CartaoColetivo", () => {
     expect(href).not.toContain("page=");
   });
 
+  it("a categoria clicada soma às já marcadas", () => {
+    // Os filtros combinam com "e": clicar em Agroecologia estando em Moda
+    // pede os coletivos que estão nas duas.
+    render(<CartaoColetivo coletivo={BASE} parametros={{ categoria: "1", page: "2" }} />);
+
+    const href = screen.getByRole("link", { name: "Agroecologia" }).getAttribute("href") ?? "";
+    const busca = new URL(href, "http://x").searchParams;
+    expect(busca.getAll("categoria")).toEqual(["1", "3"]);
+    expect(busca.has("page")).toBe(false);
+  });
+
+  it("deixa o chip de categoria por cima do link esticado do cartão", () => {
+    // Sem `relative z-10`, o `::after` do link do nome cobre o chip e o clique
+    // nele abre o perfil em vez de filtrar.
+    render(<CartaoColetivo coletivo={BASE} parametros={{}} />);
+
+    expect(screen.getByRole("link", { name: "Agroecologia" })).toHaveClass("relative", "z-10");
+  });
+
   describe("foto", () => {
     const COM_FOTO: Coletivo = {
       ...BASE,

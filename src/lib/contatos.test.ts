@@ -7,7 +7,7 @@
  */
 import { describe, expect, it } from "vitest";
 
-import { arrobaDoInstagram, urlDoInstagram, urlDoSite } from "@/lib/contatos";
+import { arrobaDoInstagram, textoDoSite, urlDoInstagram, urlDoSite } from "@/lib/contatos";
 
 describe("urlDoInstagram", () => {
   it("aceita as três formas de escrever o mesmo perfil", () => {
@@ -53,5 +53,24 @@ describe("urlDoSite", () => {
 
   it("devolve undefined para valor em branco", () => {
     expect(urlDoSite("")).toBeUndefined();
+  });
+});
+
+describe("textoDoSite", () => {
+  it("tira o esquema, o www e a barra do fim", () => {
+    expect(textoDoSite("https://www.sementesdovale.org/")).toBe("sementesdovale.org");
+    expect(textoDoSite("http://sementesdovale.org")).toBe("sementesdovale.org");
+  });
+
+  it("mantém o caminho, que num agregador de links identifica o coletivo", () => {
+    expect(textoDoSite("https://linktr.ee/sementes")).toBe("linktr.ee/sementes");
+  });
+
+  it("não converte domínio acentuado para punycode", () => {
+    expect(textoDoSite("https://feiradoaçaí.org")).toBe("feiradoaçaí.org");
+  });
+
+  it("devolve como veio o que não é endereço", () => {
+    expect(textoDoSite("sementes do vale")).toBe("sementes do vale");
   });
 });

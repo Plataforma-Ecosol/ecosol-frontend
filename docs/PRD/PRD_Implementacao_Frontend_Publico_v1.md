@@ -35,7 +35,7 @@ A fatia foi executada, e a execução mostrou que partes deste documento estavam
 
 - **Seção 6** — `sitemap.ts` e `robots.ts` não estavam atribuídos a nenhum PR, e por isso ficaram de fora. Agora são o PR R.
 - **Seção 8** — o padrão de teste que funcionou na prática.
-- **Seção 10.6** — o filtro por categoria é clique no cartão, e isso é decisão, não contorno.
+- **Seção 10.6** — o filtro por categoria é clique no cartão, e isso é decisão, não contorno. (Revista depois pelo PRD de componentes: o painel de filtros se somou ao clique.)
 - **Seção 10.4** — a orquestração Docker deixou de ser questão em aberto: é o repositório `ecosol-infra`.
 
 ---
@@ -84,7 +84,7 @@ A fatia está concluída quando **todos** os itens abaixo forem verdadeiros:
 
 1. `npm run dev` sobe a aplicação e ela consome a API do backend local.
 2. As seis rotas da Seção 5 respondem, **renderizadas no servidor**, e o HTML entregue já contém o conteúdo (verificável com `curl` + `view-source`, sem JavaScript).
-3. A listagem de coletivos tem busca textual, filtro por categoria e bairro, e paginação — todos refletidos na **URL** (`?q=`, `?categoria=`, `?page=`), para que o estado seja compartilhável e o botão "voltar" funcione.
+3. A listagem de coletivos tem busca textual, filtro por categoria e bairro, e paginação — todos refletidos na **URL** (`?q=`, `?categoria=`, `?page=`), para que o estado seja compartilhável e o botão "voltar" funcione. A categoria aceita mais de um valor (`?categoria=1&categoria=3`), combinando com "e". (Alterado pelo PRD de componentes, `PRD_Componentes_Busca_Filtros_Paginacao_Contato_v1.md`; antes: uma categoria só.)
 4. O perfil por slug responde `200`; slug inexistente ou de coletivo inativo entrega **404 de verdade** (`notFound()`), não uma página vazia com status 200.
 5. Um **slug antigo** leva o navegador à URL canônica com redirecionamento permanente — a barra de endereço muda, não só o conteúdo.
 6. Contatos sem consentimento **não aparecem, e não deixam rastro**: nem rótulo vazio, nem `undefined`, nem ícone órfão.
@@ -95,7 +95,7 @@ A fatia está concluída quando **todos** os itens abaixo forem verdadeiros:
 11. `npm run lint`, `tsc --noEmit`, `vitest run` e `next build` passam, e o CI do repositório fica **verde**.
 12. O `README.md` do frontend documenta como rodar, as variáveis de ambiente e a relação com a API.
 
-> **O que NÃO faz parte do "pronto":** deploy na Vercel, domínio, analytics, tema escuro, animações, biblioteca de componentes e testes end-to-end com navegador real. O v4.1 pede explicitamente que se evite sobre-engenharia.
+> **O que NÃO faz parte do "pronto":** deploy na Vercel, domínio, analytics, tema escuro, animações, biblioteca de componentes (revista pelo PRD de componentes, `PRD_Componentes_Busca_Filtros_Paginacao_Contato_v1.md`) e testes end-to-end com navegador real. O v4.1 pede explicitamente que se evite sobre-engenharia.
 
 > **Atenção: "tema escuro fora de escopo" exige trabalho.** Lê-se como "não há nada a fazer", e é o contrário. O `create-next-app` **entrega** um bloco `prefers-color-scheme: dark` no `globals.css`, junto de uma regra em `body` escrita **fora de `@layer`** — e regra sem camada vence qualquer utilitário do Tailwind, independente de especificidade. O resultado: o `bg-stone-50` do layout nunca vale, e em quem usa o sistema em modo escuro o fundo vira `#0a0a0a` enquanto o texto continua na cor escolhida para fundo claro. Medido no navegador: fundo `rgb(10,10,10)` com texto cinza escuro, ilegível. **Apagar o bloco e a regra faz parte do PR L.** Meio tema escuro é pior do que nenhum — e o defeito não aparece em teste nem em verificação de rota, só ao abrir a página.
 
@@ -129,13 +129,13 @@ Fonte da verdade: seção "API pública" do `README.md` do backend. Reproduzido 
 
 | Endpoint | Parâmetros |
 |---|---|
-| Coletivos | `q`, `categoria` (int), `bairro`, `ordering` (`nome`, `-nome`, `criado_em`, `-criado_em`) |
+| Coletivos | `q`, `categoria` (int, pode repetir: o coletivo precisa estar em todas), `bairro`, `ordering` (`nome`, `-nome`, `criado_em`, `-criado_em`) |
 | Eventos | `q`, `periodo` (`proximos`/`passados`/`todos`), `de`, `ate` (**só** `AAAA-MM-DD`), `bairro`, `ordering` (`data_inicio`, `-data_inicio`, `titulo`, `-titulo`) |
 | Pontos | `q`, `tipo` (`orgao_es`/`loja_fisica`/`feira_arariboia`), `ordering` (`nome`, `-nome`) |
 
 Valor inválido responde `400` — o frontend precisa tratar, não deixar estourar.
 
-**Não há endpoint de catálogo.** A API não expõe a lista de categorias nem a de bairros: `categoria` recebe um id e `bairro` um texto, mas não existe `/api/categorias/` de onde tirar as opções. Isso decide a forma do filtro na tela — ver a decisão 10.6.
+**Opções dos filtros:** `GET /api/filtros/coletivos/` devolve `{categorias, bairros}` e `GET /api/filtros/eventos/` devolve `{bairros}`, só com o que está em uso por algum registro ativo. É de onde o painel de filtros tira as opções — ver a decisão 10.6. Se o endpoint falhar, a listagem continua de pé e só o painel fica sem as opções. (Alterado pelo PRD de componentes, `PRD_Componentes_Busca_Filtros_Paginacao_Contato_v1.md`; antes: não havia endpoint de catálogo, e o filtro era só por clique no cartão.)
 
 ### 3.4. As três armadilhas do contrato
 
@@ -165,9 +165,10 @@ Estas três são a razão de a Seção 4.2 existir. Errar qualquer uma produz bu
 | Mapa | **Leaflet + react-leaflet** | Só no cliente (Seção 4.4) |
 | Ícones | **lucide-react** | Importados um a um pelo nome; sempre ao lado de texto, com `aria-hidden`. Origem: PRD da base visual (`PRD_Base_Visual_v1.md`) |
 | Fonte dos títulos | **`next/font`** (já vem com o Next) | Um peso, subset latino, baixada no build e servida pelo próprio site. Origem: PRD da base visual |
+| Componentes de interface | **shadcn/ui** (base Radix), copiado para `src/componentes/ui/` | Só Input, Button, Badge e Pagination, com as cores da paleta e sem `dark:`. Não é pacote: o código é do projeto. Origem: PRD de componentes (`PRD_Componentes_Busca_Filtros_Paginacao_Contato_v1.md`) |
 | Testes | **Vitest + React Testing Library** | e2e fora de escopo |
 
-Nenhuma biblioteca de componentes, nenhum gerenciador de estado, nenhum cliente HTTP (o `fetch` nativo basta). O v4.1 (2.1) prevê explicitamente que não é preciso biblioteca de formulário no MVP, já que a Interface 2 é o Django Admin.
+Nenhuma biblioteca de componentes instalada como pacote. O shadcn/ui é a exceção, porque o código fica no projeto. Nenhum gerenciador de estado, nenhum cliente HTTP (o `fetch` nativo basta). (Alterado pelo PRD de componentes, `PRD_Componentes_Busca_Filtros_Paginacao_Contato_v1.md`; antes: nenhuma biblioteca de componentes.) O v4.1 (2.1) prevê explicitamente que não é preciso biblioteca de formulário no MVP, já que a Interface 2 é o Django Admin.
 
 ### 4.2. Os tipos do contrato — `src/tipos/api.ts`
 
@@ -269,7 +270,9 @@ Responsabilidades:
 
 Fica na camada de acesso, e não em cada página, pelo mesmo motivo que a guarda de storage do backend é `autouse`: proteção que cada arquivo precisa lembrar de pedir falha na primeira página que esquecer.
 
-### 4.4. O mapa, e por que ele é a única ilha de cliente
+### 4.4. O mapa, e por que ele é ilha de cliente
+
+Desde o PRD de componentes, o mapa não é a única ilha: a busca (`FormularioDeBusca`) e o painel de filtros (`PainelDeFiltros`) também são de cliente, só para enviar o formulário GET sem recarregar a página (e, na busca, enviar sozinha enquanto a pessoa digita). O resultado continua renderizado no servidor, e os dois funcionam sem JavaScript. O botão Copiar do perfil e o menu do celular completam a lista. (Alterado pelo PRD de componentes, `PRD_Componentes_Busca_Filtros_Paginacao_Contato_v1.md`.)
 
 Leaflet toca `window` **no momento do import**. Importá-lo de um Server Component quebra o build com `ReferenceError: window is not defined`. A saída é `dynamic(..., { ssr: false })` — mas ele **não pode ser chamado da página**.
 
@@ -346,9 +349,9 @@ Amarrar a `NODE_ENV` parece equivalente e **não é**: `npm run start` e o conta
 | Rota | Consome | Renderização | Conteúdo |
 |---|---|---|---|
 | `/` | listagens, poucos itens | Sob demanda | Abertura com foto, chamadas e números da rede, coletivos em destaque, próximos eventos, chamada para o mapa (PRD de fotos) |
-| `/coletivos` | `GET /api/coletivos/` | Sob demanda | Busca, filtro por categoria e bairro, paginação — tudo na URL |
+| `/coletivos` | `GET /api/coletivos/`, `GET /api/filtros/coletivos/` | Sob demanda | Busca automática, painel de filtros (categorias com "e" e bairro), paginação — tudo na URL (PRD de componentes) |
 | `/coletivos/[slug]` | `GET /api/coletivos/{slug}/` | Sob demanda | Perfil público; `404`; **canônico via `308`** |
-| `/eventos` | `GET /api/eventos/?periodo=proximos` | Sob demanda | Agenda; alternar próximos/passados |
+| `/eventos` | `GET /api/eventos/?periodo=proximos`, `GET /api/filtros/eventos/` | Sob demanda | Agenda; alternar próximos/passados; busca automática; painel de filtros (intervalo de datas e bairro) (PRD de componentes) |
 | `/eventos/[slug]` | `GET /api/eventos/{slug}/` | Sob demanda | Detalhe com galeria |
 | `/mapa` | `GET /api/pontos-de-interesse/?page_size=100` | Sob demanda + ilha cliente | Mapa Leaflet + lista textual |
 
@@ -389,6 +392,8 @@ Cada contato é renderizado sob checagem de existência, e o rótulo vive **dent
 ```
 
 Escrever o rótulo fora da condição produz "Telefone:" seguido de nada — que denuncia que existe um telefone escondido, e é precisamente o que a omissão de chave no backend impede. A Seção 8.2 tem teste para isto.
+
+Vale também para o botão de contato e para o botão Copiar: os dois vivem dentro da mesma condição do campo. (Acrescentado pelo '+P+'.)
 
 ---
 
@@ -434,7 +439,7 @@ apps/ecosol-frontend/
 │   ├── componentes/
 │   │   ├── CartaoColetivo.tsx
 │   │   ├── CartaoEvento.tsx
-│   │   ├── Mapa.tsx              # "use client" — única ilha de cliente
+│   │   ├── Mapa.tsx              # "use client" — ilha de cliente (ver Seção 4.4)
 │   │   ├── Paginacao.tsx
 │   │   └── FormularioDeBusca.tsx
 │   ├── lib/
@@ -466,7 +471,7 @@ Quando `data_fim` é `null`, mostrar só o início. Quando existe e cai no mesmo
 
 - **Não** criar rota de API no Next que espelhe a do Django. Server Component já roda no servidor; um `route.ts` no meio seria um salto de rede a mais sem ganho.
 - **Não** guardar resposta em estado global. Cada página busca o que precisa.
-- **Não** instalar `axios`, `swr`, `react-query`, `zustand` ou biblioteca de componentes.
+- **Não** instalar `axios`, `swr`, `react-query`, `zustand` ou biblioteca de componentes em pacote (MUI, Chakra, Mantine e similares). Componente novo do shadcn passa pelo mesmo cuidado do PRD de componentes: cores da paleta e nenhuma classe `dark:`. (Alterado pelo PRD de componentes, `PRD_Componentes_Busca_Filtros_Paginacao_Contato_v1.md`.)
 - **Não** mexer em `apps/ecosol-backend`. Se algo parecer faltar na API, **parar e perguntar**.
 
 ---
@@ -569,15 +574,16 @@ O terceiro repositório **não elimina sozinho** o acoplamento de pastas: o comp
 
 Nenhuma decisão aqui contraria o v4.1. Fica registrada, porém, uma **defasagem do documento** a corrigir na próxima revisão: a Seção 9 do v4.1 documenta apenas o contrato de Coletivos, enquanto Eventos e Pontos de Interesse já têm contrato real (README do backend), e a Seção 12 ainda descreve o item 6 como "próximo" quando ele foi entregue.
 
-### 10.6. O filtro por categoria é clique no cartão, não lista suspensa
+### 10.6. O filtro é clique no cartão e painel de filtros
 
-**Decisão:** categoria e bairro se aplicam clicando no próprio cartão de um coletivo, e os filtros em vigor aparecem como rótulos removíveis no topo da listagem.
+**Decisão (revista pelo PRD de componentes, `PRD_Componentes_Busca_Filtros_Paginacao_Contato_v1.md`):** categoria e bairro continuam se aplicando ao clicar no próprio cartão de um coletivo, e agora também por um painel de filtros (`<dialog>` com formulário GET), nas duas listagens. Os filtros combinam com "e": várias categorias trazem só os coletivos que estão em todas, e a categoria clicada no cartão soma às já marcadas. Os filtros em vigor aparecem como rótulos removíveis no topo da listagem.
 
-**Motivo:** a API não expõe catálogo (Seção 3.3), e a decisão de **não criar** `/api/categorias/` foi tomada. Sem esse endpoint não há de onde tirar as opções de uma lista suspensa. E um campo de texto livre para bairro seria pior do que parece: o filtro compara o valor inteiro (`iexact`), então "icarai" sem acento, ou "Centro Niterói", devolvem vazio sem explicar por quê. Clicando, o valor está correto por construção.
+**Antes:** só o clique no cartão, porque a API não expunha catálogo e a decisão tinha sido não criá-lo. O desenvolvedor pediu o painel, e o backend passou a oferecer `/api/filtros/coletivos/` e `/api/filtros/eventos/` (Seção 3.3).
 
-**Os rótulos removíveis não são enfeite.** Sem eles, a única pista de que a listagem está recortada seria a barra de endereço — e quem chega por um link compartilhado não viu o clique acontecer: veria uma lista incompleta achando que é a rede inteira.
+**O motivo de não ter campo de texto para bairro continua valendo:** o filtro compara o valor inteiro (`iexact`), então "icarai" sem acento, ou "Centro Niterói", devolveriam vazio sem explicar por quê. O bairro é escolhido numa lista com os valores que existem, correto por construção, como no clique.
 
-Isto **não é contorno provisório**, é o desenho oficial. Registrado para que a próxima pessoa a ler o documento não proponha a lista suspensa de novo.
+**Os rótulos removíveis não são enfeite.** Sem eles, a única pista de que a listagem está recortada seria a barra de endereço — e quem chega por um link compartilhado não viu o filtro ser aplicado: veria uma lista incompleta achando que é a rede inteira.
+
 ---
 
 ## 11. Checklist de aceite (para marcar no PR)
@@ -617,7 +623,7 @@ Isto **não é contorno provisório**, é o desenho oficial. Registrado para que
 4. **Subir o backend local e olhar as respostas de verdade** antes de escrever os tipos. Conferir na resposta real que o coletivo sem consentimento não traz a chave do contato; é a diferença entre transcrever o contrato e verificá-lo.
 5. Seguir a ordem de PRs da Seção 6. Um PR por branch, saindo de `staging`, com Conventional Commits em português.
 6. Rodar `npm run lint`, `tsc --noEmit`, `vitest run` e `next build` a cada commit; só seguir com tudo verde.
-7. Nenhuma dependência além das da Seção 4.1 — que, desde o PRD da base visual (`PRD_Base_Visual_v1.md`), incluem `lucide-react`. Querer uma a mais é sinal de parar e perguntar.
+7. Nenhuma dependência além das da Seção 4.1 — que, desde o PRD da base visual (`PRD_Base_Visual_v1.md`), incluem `lucide-react`, e desde o PRD de componentes (`PRD_Componentes_Busca_Filtros_Paginacao_Contato_v1.md`, seção 1), as do shadcn/ui: `class-variance-authority`, `cn` e `radix-ui`. Querer uma a mais é sinal de parar e perguntar.
 8. Manter tudo em português — código, comentários, commits, textos de tela e mensagens de erro. É requisito de Tecnologia Social do projeto.
 9. **Não dar push sem autorização explícita.** Commit local é livre; `push`, PR e merge só quando o Jean pedir.
 10. Diante de qualquer ambiguidade sobre o que pode ser exibido: **parar e perguntar**. Em hipótese alguma inventar um campo, inferir um dado que a API não devolveu, ou exibir um valor "por precaução".

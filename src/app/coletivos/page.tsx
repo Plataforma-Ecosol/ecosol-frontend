@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
 
+import { CamposDeColetivo } from "@/componentes/CamposDeFiltro";
 import { CartaoColetivo } from "@/componentes/CartaoColetivo";
 import { FiltrosAtivos } from "@/componentes/FiltrosAtivos";
 import { FormularioDeBusca } from "@/componentes/FormularioDeBusca";
+import { PainelDeFiltros } from "@/componentes/PainelDeFiltros";
 import { Paginacao } from "@/componentes/Paginacao";
-import { listarColetivos } from "@/lib/api";
-import { paginaAtual, primeiro, type ParametrosDaRota } from "@/lib/consulta";
+import { listarColetivos, opcoesDeFiltroDeColetivos } from "@/lib/api";
+import { paginaAtual, primeiro, todos, type ParametrosDaRota } from "@/lib/consulta";
+import { CHAVES_DE_COLETIVO, filtrosAtivosDeColetivos } from "@/lib/filtros";
 
 export const metadata: Metadata = {
   title: "Coletivos",
@@ -18,8 +21,9 @@ export const metadata: Metadata = {
  * Listagem pública de coletivos.
  *
  * Todo o estado — busca, filtros e página — vem da URL e volta para ela.
- * Nenhum `useState`, nenhuma chamada do navegador: a página é renderizada no
- * servidor a cada navegação, que é o que a mantém indexável.
+ * Nenhuma chamada do navegador à API: a página é renderizada no servidor a
+ * cada navegação, que é o que a mantém indexável. Busca e painel de filtros
+ * são ilhas de cliente só para enviar o formulário sem recarregar a página.
  */
 export default async function Coletivos({
   searchParams,
@@ -30,28 +34,32 @@ export default async function Coletivos({
   const parametros = await searchParams;
   const pagina = paginaAtual(parametros.page);
 
-  const resultado = await listarColetivos({
-    q: primeiro(parametros.q),
-    categoria: primeiro(parametros.categoria),
-    bairro: primeiro(parametros.bairro),
-    page: pagina,
-  });
+  // As opções do painel em paralelo com a listagem: são independentes, e em
+  // sequência a página esperaria as duas respostas uma depois da outra.
+  const [resultado, opcoes] = await Promise.all([
+    listarColetivos({
+      q: primeiro(parametros.q),
+      categoria: todos(parametros.categoria),
+      bairro: primeiro(parametros.bairro),
+      page: pagina,
+    }),
+    opcoesDeFiltroDeColetivos(),
+  ]);
 
-  // O nome da categoria filtrada só existe nos cartões — a API não expõe
-  // catálogo de categorias. Quando nenhum coletivo da página a carrega
-  // (acontece se a categoria some do cadastro), `FiltrosAtivos` mostra o id.
-  const categoriaFiltrada = primeiro(parametros.categoria);
-  const nomeDaCategoria = categoriaFiltrada
-    ? resultado.results
-        .flatMap((coletivo) => coletivo.categorias)
-        .find((categoria) => String(categoria.id) === categoriaFiltrada)?.nome
-    : undefined;
+  // Sem as opções, o nome da categoria filtrada ainda pode estar nos cartões
+  // da página. Se nem ali estiver, o chip mostra o id.
+  const filtros = filtrosAtivosDeColetivos(
+    parametros,
+    opcoes?.categorias ?? resultado.results.flatMap((coletivo) => coletivo.categorias),
+  );
 
   return (
     <section className="space-y-6">
       <header className="space-y-2">
         <h1 className="text-2xl font-bold text-azul">Coletivos da rede</h1>
-        <p className="text-texto/75">
+        {/* `aria-live`: com a busca automática o resultado muda sem a pessoa
+            sair do campo, e o leitor de tela precisa ouvir quantos achou. */}
+        <p aria-live="polite" className="text-texto/75">
           {resultado.count === 0
             ? "Nenhum coletivo encontrado."
             : `${resultado.count} ${resultado.count === 1 ? "coletivo" : "coletivos"}.`}
@@ -64,11 +72,17 @@ export default async function Coletivos({
         placeholder="Buscar por nome ou descrição"
       />
 
-      <FiltrosAtivos
-        parametros={parametros}
-        rota="/coletivos"
-        nomeDaCategoria={nomeDaCategoria}
-      />
+      <div className="flex flex-wrap items-center gap-2">
+        <PainelDeFiltros
+          rota="/coletivos"
+          parametros={parametros}
+          chaves={CHAVES_DE_COLETIVO}
+          quantidade={filtros.length}
+        >
+          <CamposDeColetivo opcoes={opcoes} parametros={parametros} />
+        </PainelDeFiltros>
+        <FiltrosAtivos filtros={filtros} parametros={parametros} rota="/coletivos" />
+      </div>
 
       {resultado.results.length === 0 ? (
         <p className="rounded border border-dourado/60 bg-white p-6 text-texto/85">

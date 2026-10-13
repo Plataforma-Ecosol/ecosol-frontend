@@ -21,7 +21,9 @@ vi.mock("next/navigation", () => ({
   notFound: () => notFound(),
 }));
 
-const { ErroDaApi, buscarColetivo, listarColetivos } = await import("@/lib/api");
+const { ErroDaApi, buscarColetivo, listarColetivos, opcoesDeFiltroDeColetivos } = await import(
+  "@/lib/api"
+);
 
 function respondeCom(status: number, corpo: unknown = {}) {
   vi.stubGlobal(
@@ -62,8 +64,8 @@ describe("tradução de status", () => {
     // mensagem crua da API não ajudaria e poderia expor detalhe interno.
     respondeCom(400);
 
-    await expect(listarColetivos({ categoria: "texto" })).rejects.toThrow(ErroDaApi);
-    await expect(listarColetivos({ categoria: "texto" })).rejects.toThrow(/filtros/i);
+    await expect(listarColetivos({ categoria: ["texto"] })).rejects.toThrow(ErroDaApi);
+    await expect(listarColetivos({ categoria: ["texto"] })).rejects.toThrow(/filtros/i);
     expect(notFound).not.toHaveBeenCalled();
   });
 
@@ -97,5 +99,31 @@ describe("a URL que chega ao backend", () => {
 
     const [, opcoes] = vi.mocked(fetch).mock.calls[0];
     expect(opcoes).toMatchObject({ next: { revalidate: expect.any(Number) } });
+  });
+});
+
+describe("opções do painel de filtros", () => {
+  it("devolve as opções quando a API responde", async () => {
+    respondeCom(200, { categorias: [{ id: 1, nome: "Moda", slug: "moda" }], bairros: ["Centro"] });
+
+    expect(await opcoesDeFiltroDeColetivos()).toEqual({
+      categorias: [{ id: 1, nome: "Moda", slug: "moda" }],
+      bairros: ["Centro"],
+    });
+  });
+
+  it("404 NÃO vira notFound(): sem opções, a listagem continua de pé", async () => {
+    // É o que acontece com o frontend publicado antes do backend que traz o
+    // endpoint. Derrubar a listagem por causa do painel seria desproporcional.
+    respondeCom(404);
+
+    expect(await opcoesDeFiltroDeColetivos()).toBeNull();
+    expect(notFound).not.toHaveBeenCalled();
+  });
+
+  it("backend fora do ar também devolve null", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new TypeError("fetch failed")));
+
+    expect(await opcoesDeFiltroDeColetivos()).toBeNull();
   });
 });

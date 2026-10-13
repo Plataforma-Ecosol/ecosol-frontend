@@ -15,7 +15,14 @@
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
 
-import type { Coletivo, Evento, Pagina, PontoDeInteresse } from "@/tipos/api";
+import type {
+  Coletivo,
+  Evento,
+  OpcoesDeFiltroDeColetivo,
+  OpcoesDeFiltroDeEvento,
+  Pagina,
+  PontoDeInteresse,
+} from "@/tipos/api";
 
 /** Onde o SERVIDOR do Next encontra a API. Dentro do compose, `backend:8001`. */
 const BASE = process.env.API_URL ?? "http://localhost:8001";
@@ -57,7 +64,7 @@ export class ErroDaApi extends Error {
  * este. Uma `interface` não é — ela pode ganhar campos depois, por declaration
  * merging, e o compilador não tem como garantir que todos serão compatíveis.
  */
-type Parametros = Record<string, string | number | undefined | null>;
+type Parametros = Record<string, string | number | string[] | undefined | null>;
 
 /**
  * Monta a URL, descartando parâmetro vazio.
@@ -65,12 +72,17 @@ type Parametros = Record<string, string | number | undefined | null>;
  * O descarte importa: um formulário enviado em branco produziria `?q=`, e o
  * backend responde `400` a filtro com valor vazio em vez de ignorá-lo. Sem
  * isto, limpar a busca quebraria a página.
+ *
+ * Lista vira chave repetida (`?categoria=1&categoria=3`): é o formato que o
+ * backend lê para combinar categorias.
  */
 export function montarUrl(caminho: string, parametros: Parametros = {}): string {
   const url = new URL(caminho, BASE);
   for (const [chave, valor] of Object.entries(parametros)) {
-    if (valor === undefined || valor === null || valor === "") continue;
-    url.searchParams.set(chave, String(valor));
+    for (const item of Array.isArray(valor) ? valor : [valor]) {
+      if (item === undefined || item === null || item === "") continue;
+      url.searchParams.append(chave, String(item));
+    }
   }
   return url.toString();
 }
@@ -148,7 +160,8 @@ async function buscar<T>(
 
 export type FiltrosDeColetivo = {
   q?: string;
-  categoria?: string | number;
+  /** Mais de uma: o coletivo precisa estar em TODAS (é "e", não "ou"). */
+  categoria?: string[];
   bairro?: string;
   ordering?: string;
   page?: string | number;
@@ -165,6 +178,37 @@ export function buscarColetivo(slug: string) {
   // quem compara o slug pedido com o slug devolvido é a página — ver o
   // comentário em `app/coletivos/[slug]/page.tsx`.
   return buscar<Coletivo>(`/api/coletivos/${slug}/`, {}, REVALIDACAO_DETALHE);
+}
+
+// --- Opções dos filtros -----------------------------------------------------
+
+/**
+ * Busca as opções do painel de filtros SEM derrubar a página quando falham.
+ *
+ * Não passa por `buscar`: lá um `404` vira `notFound()`, e a listagem inteira
+ * viraria "página não encontrada" só porque o painel não tem opções — o que
+ * aconteceria, por exemplo, com o frontend publicado antes do backend que
+ * traz este endpoint. Sem as opções, o painel mostra o aviso e a listagem
+ * segue de pé.
+ */
+async function buscarOpcoes<T>(caminho: string): Promise<T | null> {
+  await connection();
+  try {
+    const resposta = await fetch(montarUrl(caminho), {
+      next: { revalidate: REVALIDACAO_DETALHE },
+    });
+    return resposta.ok ? ((await resposta.json()) as T) : null;
+  } catch {
+    return null;
+  }
+}
+
+export function opcoesDeFiltroDeColetivos() {
+  return buscarOpcoes<OpcoesDeFiltroDeColetivo>("/api/filtros/coletivos/");
+}
+
+export function opcoesDeFiltroDeEventos() {
+  return buscarOpcoes<OpcoesDeFiltroDeEvento>("/api/filtros/eventos/");
 }
 
 // --- Eventos ----------------------------------------------------------------

@@ -1,6 +1,15 @@
-import Link from "next/link";
-
+import {
+  Pagination,
+  PaginationAtual,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/componentes/ui/pagination";
 import { comParametros, type ParametrosDaRota } from "@/lib/consulta";
+import { paginasVisiveis } from "@/lib/paginacao";
 
 /** Itens por página — o padrão do backend, e o que este projeto não altera. */
 const POR_PAGINA = 20;
@@ -13,6 +22,13 @@ const POR_PAGINA = 20;
  * jogá-los na tela mandaria a pessoa para fora do site, e dentro do Docker
  * para um endereço que o navegador nem resolve. O envelope serve para saber
  * QUANTAS páginas existem; para onde ir é decisão do frontend.
+ *
+ * Duas listas, uma para o celular e outra para o computador, e o CSS mostra
+ * uma só. No celular de 360 px não cabem os vizinhos da página atual nem as
+ * palavras "Anterior" e "Próxima". O `display: none` tira a lista escondida da
+ * árvore de acessibilidade e da ordem do Tab, então o leitor de tela encontra
+ * uma só. É HTML repetido em troca de não depender de JavaScript para medir a
+ * tela.
  */
 export function Paginacao({
   total,
@@ -28,40 +44,64 @@ export function Paginacao({
   const totalDePaginas = Math.ceil(total / POR_PAGINA);
   if (totalDePaginas <= 1) return null;
 
-  const anterior = pagina > 1 ? pagina - 1 : null;
-  const proxima = pagina < totalDePaginas ? pagina + 1 : null;
+  const props = { pagina, totalDePaginas, parametros, rota };
 
   return (
-    <nav aria-label="Paginação" className="flex items-center justify-between gap-4">
-      {anterior ? (
-        <Link
-          href={`${rota}${comParametros(parametros, { page: anterior })}`}
-          className="rounded border border-azul bg-white px-3 py-2 text-azul hover:bg-azul/10"
-          rel="prev"
-        >
-          ← Anterior
-        </Link>
-      ) : (
-        // Um `<span>` no lugar do link: botão desabilitado ainda recebe foco
-        // do teclado e promete uma ação que não acontece.
-        <span />
+    <Pagination>
+      <ListaDePaginas {...props} vizinhos={0} className="flex sm:hidden" />
+      <ListaDePaginas {...props} vizinhos={1} className="hidden sm:flex" />
+    </Pagination>
+  );
+}
+
+function ListaDePaginas({
+  pagina,
+  totalDePaginas,
+  parametros,
+  rota,
+  vizinhos,
+  className,
+}: {
+  pagina: number;
+  totalDePaginas: number;
+  parametros: ParametrosDaRota;
+  rota: string;
+  vizinhos: number;
+  className: string;
+}) {
+  const href = (numero: number) => `${rota}${comParametros(parametros, { page: numero })}`;
+
+  return (
+    <PaginationContent className={className}>
+      {/* Sem Anterior na primeira página e sem Próxima na última, em vez de
+          um botão desabilitado: ele ainda recebe foco do teclado e promete
+          uma ação que não acontece. */}
+      {pagina > 1 && (
+        <PaginationItem>
+          <PaginationPrevious href={href(pagina - 1)} />
+        </PaginationItem>
       )}
 
-      <span aria-current="page" className="rounded bg-azul px-3 py-2 text-sm text-bege">
-        Página {pagina} de {totalDePaginas}
-      </span>
+      {paginasVisiveis(pagina, totalDePaginas, vizinhos).map((item, indice) => (
+        <PaginationItem key={item === "…" ? `reticencias-${indice}` : item}>
+          {item === "…" ? (
+            <PaginationEllipsis />
+          ) : item === pagina ? (
+            <PaginationAtual>{item}</PaginationAtual>
+          ) : (
+            // Sem o `aria-label`, o leitor de tela anunciaria só "3, link".
+            <PaginationLink href={href(item)} aria-label={`Página ${item}`}>
+              {item}
+            </PaginationLink>
+          )}
+        </PaginationItem>
+      ))}
 
-      {proxima ? (
-        <Link
-          href={`${rota}${comParametros(parametros, { page: proxima })}`}
-          className="rounded border border-azul bg-white px-3 py-2 text-azul hover:bg-azul/10"
-          rel="next"
-        >
-          Próxima →
-        </Link>
-      ) : (
-        <span />
+      {pagina < totalDePaginas && (
+        <PaginationItem>
+          <PaginationNext href={href(pagina + 1)} />
+        </PaginationItem>
       )}
-    </nav>
+    </PaginationContent>
   );
 }
