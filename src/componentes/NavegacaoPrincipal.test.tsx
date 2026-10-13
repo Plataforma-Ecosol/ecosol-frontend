@@ -5,7 +5,7 @@
  * celular; o CSS mostra um ou outro), e as duas cópias precisam dizer a mesma
  * coisa. Por isso os testes conferem todas as ocorrências de cada link.
  */
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { usePathname } from "next/navigation";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -43,6 +43,31 @@ describe("NavegacaoPrincipal — página atual", () => {
       expect(link).toHaveAttribute("aria-current", "true");
     }
     for (const link of [...links("Agenda"), ...links("Mapa")]) {
+      expect(link).not.toHaveAttribute("aria-current");
+    }
+  });
+
+  it("tem os quatro links em cada cópia do menu", () => {
+    rotaAtual.mockReturnValue("/");
+    render(<NavegacaoPrincipal />);
+
+    for (const nav of screen.getAllByRole("navigation", { name: "Principal", hidden: true })) {
+      expect(
+        within(nav).getAllByRole("link", { hidden: true }).map((link) => link.textContent),
+      ).toEqual(["Coletivos", "Agenda", "Mapa", "Saiba mais"]);
+    }
+  });
+
+  it("marca o Saiba mais na própria página, e só ele", () => {
+    rotaAtual.mockReturnValue("/saiba-mais");
+    render(<NavegacaoPrincipal />);
+
+    const saibaMais = links("Saiba mais");
+    expect(saibaMais.length).toBeGreaterThanOrEqual(2);
+    for (const link of saibaMais) {
+      expect(link).toHaveAttribute("aria-current", "page");
+    }
+    for (const link of [...links("Coletivos"), ...links("Agenda"), ...links("Mapa")]) {
       expect(link).not.toHaveAttribute("aria-current");
     }
   });

@@ -72,6 +72,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: urlAbsoluta("/coletivos"), changeFrequency: "weekly", priority: 0.9 },
     { url: urlAbsoluta("/eventos"), changeFrequency: "daily", priority: 0.9 },
     { url: urlAbsoluta("/mapa"), changeFrequency: "weekly", priority: 0.8 },
+    { url: urlAbsoluta("/saiba-mais"), changeFrequency: "monthly", priority: 0.5 },
   ];
 
   return [
