@@ -13,6 +13,7 @@
  * `docs/PRD/PRD_Pagina_Saiba_Mais_e_Contato_da_Casa_v1.md`). Quando os dados
  * passarem a vir do Admin, a página troca a origem e o resto fica igual.
  */
+import { urlDoInstagram } from "@/lib/contatos";
 
 export type Casa = {
   nome: string;
@@ -80,4 +81,37 @@ export function urlDoMapa(endereco: string): string {
 /** O link de conversa do WhatsApp. O `wa.me` só aceita dígitos. */
 export function urlDoWhatsapp(numero: string): string {
   return `https://wa.me/${numero.replace(/\D/g, "")}`;
+}
+
+/**
+ * O telefone da Casa como a página e o JSON-LD o publicam — uma regra só, para
+ * os dois nunca mostrarem coisas diferentes.
+ *
+ * Aparece sempre que houver o número de exibir. O de discar só acompanha
+ * quando também existe: aí o número vira link `tel:`. Sem o de exibir, não há
+ * telefone, mesmo que o de discar esteja preenchido — não há o que mostrar.
+ */
+export function telefoneDaCasa(
+  casa: Casa,
+): { exibir: string; discagem?: string } | undefined {
+  if (!casa.telefone) return undefined;
+  return { exibir: casa.telefone, discagem: casa.telefone_discagem };
+}
+
+/**
+ * Se a página "Saiba mais" tem o bloco "Fale com a Casa" (`#contato`).
+ *
+ * O link do rodapé usa a mesma função: sem o bloco, ele aponta para a página,
+ * e não para uma âncora que não existe.
+ */
+export function temContato(casa: Casa): boolean {
+  return Boolean(
+    telefoneDaCasa(casa) ||
+      casa.email ||
+      casa.whatsapp ||
+      (casa.instagram && urlDoInstagram(casa.instagram)) ||
+      casa.facebook ||
+      casa.endereco ||
+      casa.horario_atendimento,
+  );
 }

@@ -14,7 +14,7 @@ import Link from "next/link";
 
 import { BotaoCopiar } from "@/componentes/BotaoCopiar";
 import { Button } from "@/componentes/ui/button";
-import { CASA, urlDoMapa, urlDoWhatsapp } from "@/lib/casa";
+import { CASA, telefoneDaCasa, temContato, urlDoMapa, urlDoWhatsapp } from "@/lib/casa";
 import { arrobaDoInstagram, urlDoInstagram } from "@/lib/contatos";
 import { urlAbsoluta } from "@/lib/site";
 
@@ -61,13 +61,15 @@ type BotaoDeContato = {
 function dadosEstruturados() {
   const instagram = CASA.instagram ? urlDoInstagram(CASA.instagram) : undefined;
   const sameAs = [instagram, CASA.facebook].filter(Boolean);
+  const telefone = telefoneDaCasa(CASA);
 
   return {
     "@context": "https://schema.org",
     "@type": "Organization",
     name: CASA.nome,
     url: urlAbsoluta("/saiba-mais"),
-    telephone: CASA.telefone_discagem,
+    // A mesma regra da página: sem o número de exibir, nada de telefone aqui.
+    telephone: telefone && (telefone.discagem ?? telefone.exibir),
     email: CASA.email,
     address: CASA.endereco,
     sameAs: sameAs.length > 0 ? sameAs : undefined,
@@ -124,13 +126,12 @@ export default function SaibaMais() {
     },
   ].filter((botao): botao is BotaoDeContato => Boolean(botao));
 
-  // O telefone só vira link quando há as duas formas: a de exibir e a de
-  // discar. O número é escrito uma vez aqui, já no formato internacional, e
-  // revisado no PR — por isso aqui há `tel:`, e no perfil do coletivo não.
-  const telefone = CASA.telefone && CASA.telefone_discagem;
-  const temContato = Boolean(
-    telefone || botoes.length > 0 || CASA.endereco || CASA.horario_atendimento,
-  );
+  // O telefone aparece com o número de exibir e só vira link quando também há
+  // o de discar. O número de discar é escrito uma vez, já no formato
+  // internacional, e revisado no PR — por isso aqui há `tel:`, e no perfil do
+  // coletivo não.
+  const telefone = telefoneDaCasa(CASA);
+  const contatoVisivel = temContato(CASA);
 
   return (
     <article className="space-y-10">
@@ -153,8 +154,8 @@ export default function SaibaMais() {
           esta página no telefone quase sempre quer o contato. */}
       <div
         className={
-          CASA.quem_somos && temContato
-            ? "grid items-start gap-8 md:grid-cols-2"
+          CASA.quem_somos && contatoVisivel
+            ?"grid items-start gap-8 md:grid-cols-2"
             : "space-y-8"
         }
       >
@@ -167,7 +168,7 @@ export default function SaibaMais() {
           </section>
         )}
 
-        {temContato && (
+        {contatoVisivel && (
           <section
             id="contato"
             className="scroll-mt-4 space-y-4 rounded-xl border border-dourado-200 bg-white p-5"
@@ -182,14 +183,20 @@ export default function SaibaMais() {
                   <Phone aria-hidden className="size-5 shrink-0 text-azul" />
                   <p>
                     <span className="sr-only">Telefone: </span>
-                    <a
-                      href={`tel:${CASA.telefone_discagem}`}
-                      className="font-semibold text-azul-900 tabular-nums underline-offset-4 hover:underline"
-                    >
-                      {CASA.telefone}
-                    </a>
+                    {telefone.discagem ? (
+                      <a
+                        href={`tel:${telefone.discagem}`}
+                        className="font-semibold text-azul-900 tabular-nums underline-offset-4 hover:underline"
+                      >
+                        {telefone.exibir}
+                      </a>
+                    ) : (
+                      <span className="font-semibold text-azul-900 tabular-nums">
+                        {telefone.exibir}
+                      </span>
+                    )}
                   </p>
-                  <BotaoCopiar texto={CASA.telefone as string} rotulo="telefone" />
+                  <BotaoCopiar texto={telefone.exibir} rotulo="telefone" />
                 </div>
               )}
 
