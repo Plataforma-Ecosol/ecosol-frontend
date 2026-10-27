@@ -203,6 +203,25 @@ describe("Saiba mais — dado ausente não aparece", () => {
     expect(screen.getByRole("link", { name: "Conheça os coletivos" })).toBeInTheDocument();
   });
 
+  it("só com o telefone de exibir, ele aparece sem link, e o JSON-LD publica o mesmo número", () => {
+    dados.casa = { nome: REAL.nome, telefone: REAL.telefone };
+    const { container } = renderizar();
+
+    expect(within(contato()).getByText("(21) 2717-8350")).toBeInTheDocument();
+    expect(container.querySelector('a[href^="tel:"]')).toBeNull();
+    const script = container.querySelector('script[type="application/ld+json"]');
+    expect(JSON.parse(script?.textContent ?? "")).toHaveProperty("telephone", "(21) 2717-8350");
+  });
+
+  it("só com o telefone de discar, nada de telefone na página nem no JSON-LD", () => {
+    dados.casa = { nome: REAL.nome, telefone_discagem: REAL.telefone_discagem };
+    const { container } = renderizar();
+
+    expect(document.getElementById("contato")).toBeNull();
+    const script = container.querySelector('script[type="application/ld+json"]');
+    expect(JSON.parse(script?.textContent ?? "")).not.toHaveProperty("telephone");
+  });
+
   it("sem nenhum contato, o bloco some com o título", () => {
     dados.casa = SO_O_NOME;
     renderizar();
