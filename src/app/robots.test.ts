@@ -31,10 +31,14 @@ afterEach(() => {
 });
 
 describe("robots", () => {
-  it("sem SITE_INDEXAVEL, libera tudo e aponta o sitemap", async () => {
+  it("sem SITE_INDEXAVEL, libera o site público, bloqueia as áreas da equipe e aponta o sitemap", async () => {
     const regras = await robotsCom(undefined);
 
-    expect(regras.rules).toEqual({ userAgent: "*", allow: "/" });
+    expect(regras.rules).toEqual({
+      userAgent: "*",
+      allow: "/",
+      disallow: ["/admin/", "/equipe/"],
+    });
     expect(regras.sitemap).toBe("http://localhost:3000/sitemap.xml");
   });
 
@@ -61,7 +65,7 @@ describe("robots", () => {
     // expor uma homologação por um deploy.
     const regras = await robotsCom("nao");
 
-    expect(regras.rules).toEqual({ userAgent: "*", allow: "/" });
+    expect(regras.rules).toMatchObject({ userAgent: "*", allow: "/" });
   });
 });
 

@@ -111,7 +111,8 @@ export default function RootLayout({
               <p className="mt-1">Software livre, sob licença GPLv3.</p>
               {/* Só quem já sabe o que procura encontra: nada em destaque,
                   nenhum formulário de login aqui — o cadastro vive no Django
-                  Admin, em outro domínio. */}
+                  Admin, que abre por este site (`/admin/`, repassado ao
+                  Django). `<a>`, e não `<Link>`: a página não é do Next. */}
               <p className="mt-1">
                 <a
                   href={ENDERECO_DA_AREA_DA_EQUIPE}

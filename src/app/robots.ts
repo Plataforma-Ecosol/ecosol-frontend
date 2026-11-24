@@ -5,10 +5,13 @@ import { ENDERECO_DO_SITE, SITE_INDEXAVEL, urlAbsoluta } from "@/lib/site";
 /**
  * Instruções para os rastreadores.
  *
- * **Em produção, tudo é liberado, e isso é a decisão certa aqui.** Não há área
- * restrita neste projeto: o site é somente leitura e só mostra o que a equipe
- * marcou como público no Admin. O que não pode aparecer nunca chega à API — a
- * proteção está lá, não num arquivo que o rastreador é livre para ignorar.
+ * **Em produção, o site público é liberado, e as áreas da equipe não.** O site
+ * só mostra o que a equipe marcou como público no Admin; o que não pode
+ * aparecer nunca chega à API. As duas áreas restritas — o Admin (`/admin/`,
+ * repassado ao Django) e a Área da equipe (`/equipe/`) — ficam no `Disallow`.
+ * Isso é higiene, não proteção: quem protege é o login do Django, não um
+ * arquivo que o rastreador é livre para ignorar. A página da equipe também
+ * leva `noindex` própria.
  *
  * O valor deste arquivo é o `sitemap`: é ele que aponta o caminho para as
  * páginas de coletivo e de evento, que de outro modo só seriam alcançadas
@@ -26,7 +29,7 @@ export default function robots(): MetadataRoute.Robots {
   }
 
   return {
-    rules: { userAgent: "*", allow: "/" },
+    rules: { userAgent: "*", allow: "/", disallow: ["/admin/", "/equipe/"] },
     sitemap: urlAbsoluta("/sitemap.xml"),
     host: ENDERECO_DO_SITE,
   };
