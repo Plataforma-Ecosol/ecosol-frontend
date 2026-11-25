@@ -11,7 +11,14 @@
  * Components; o navegador nunca fala com o Django. Isso sustenta duas coisas
  * de uma vez: a página chega pronta ao buscador (que é o propósito da
  * plataforma) e o backend segue sem precisar de CORS configurado.
+ *
+ * **Duas fronteiras, com regras opostas.** A pública (coletivos, eventos,
+ * pontos) não leva cookie nenhum e guarda as respostas em cache. A da equipe
+ * (`/api/equipe/`, no fim do arquivo) repassa só o cookie de sessão do Django
+ * e nunca guarda resposta: o que um membro da equipe vê não pode ser servido
+ * a outra pessoa.
  */
+import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
 
@@ -249,4 +256,39 @@ export function listarPontos(filtros: FiltrosDePonto = {}) {
     filtros,
     REVALIDACAO_LISTAGEM,
   );
+}
+
+// --- Equipe -----------------------------------------------------------------
+
+/** Nome do cookie de sessão do Django (`SESSION_COOKIE_NAME`, padrão). */
+const COOKIE_DA_SESSAO = "sessionid";
+
+export type UsuarioDaEquipe = { nome: string };
+
+/**
+ * Quem está logado como equipe, ou `null`.
+ *
+ * O cookie existe aqui porque o login do Admin acontece pelo endereço deste
+ * site (rewrite de `/admin/` no `next.config.ts`, decisão 8.6 do PRD
+ * Técnico). Quem decide se a sessão vale é o Django: `200` para `is_staff`,
+ * `403` (ou `401`) para o resto.
+ *
+ * NÃO usa `buscar()`: ela guarda resposta em cache (`revalidate`), e uma
+ * resposta de quem está logado não pode ser reaproveitada para outra pessoa.
+ * Só o `sessionid` é repassado, nenhum outro cookie do navegador.
+ */
+export async function buscarUsuarioDaEquipe(): Promise<UsuarioDaEquipe | null> {
+  const sessao = (await cookies()).get(COOKIE_DA_SESSAO)?.value;
+  if (!sessao) return null;
+
+  const resposta = await fetch(montarUrl("/api/equipe/eu/"), {
+    headers: { cookie: `${COOKIE_DA_SESSAO}=${sessao}` },
+    cache: "no-store",
+  });
+
+  if (resposta.status === 401 || resposta.status === 403) return null;
+  if (!resposta.ok) {
+    throw new ErroDaApi("Falha ao consultar a sessão da equipe", resposta.status);
+  }
+  return (await resposta.json()) as UsuarioDaEquipe;
 }

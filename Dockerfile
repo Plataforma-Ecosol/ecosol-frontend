@@ -23,7 +23,10 @@ COPY . .
 ARG API_URL=http://backend:8001
 ARG API_URL_PUBLICA=http://localhost:8001
 # Sem valor padrão: vazio aqui é lido por `site.ts` como "não definida", e o
-# endereço da área da equipe cai no derivado de API_URL_PUBLICA.
+# endereço da área da equipe cai no `/admin/` do próprio site (SITE_URL).
+#
+# API_URL também alimenta o rewrite de `/admin/` e `/static/` ao Django
+# (`next.config.ts`), avaliado neste `npm run build`.
 ARG ADMIN_URL
 ENV API_URL=$API_URL
 ENV API_URL_PUBLICA=$API_URL_PUBLICA

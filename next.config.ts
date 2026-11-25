@@ -31,7 +31,71 @@ const IMAGENS_VEM_DE_HOST_LOCAL = /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\]|b
   API_PUBLICA,
 );
 
+/**
+ * Onde o SERVIDOR do Next encontra o Django. O mesmo valor da `lib/api.ts`.
+ *
+ * Lido no `next build`: é lá que `rewrites()` é avaliado. Na Vercel, `API_URL`
+ * já está nas variáveis do projeto; no `Dockerfile`, é `ARG` antes do build.
+ */
+const API_INTERNA = (process.env.API_URL ?? "http://localhost:8001").replace(/\/+$/, "");
+
 const nextConfig: NextConfig = {
+  // O Django Admin exige barra no fim (`/admin/login/`). O padrão do Next é
+  // tirar essa barra com um 308, e o Django devolve um 301 para pô-la de volta:
+  // laço infinito. Sem o redirecionamento do Next, a barra chega ao Django.
+  //
+  // A opção vale para o site inteiro, não só para `/admin`. Por isso o
+  // redirecionamento é recriado em `redirects()` logo abaixo, só para o resto.
+  skipTrailingSlashRedirect: true,
+
+  /**
+   * Devolve o 308 que o `skipTrailingSlashRedirect` desligou: `/saiba-mais/`
+   * vai para `/saiba-mais`. Sem isso, toda página responde com e sem a barra,
+   * e as que não têm `canonical` (`/coletivos`, `/eventos`, `/mapa`) ficam com
+   * dois endereços para o buscador (RNF20).
+   *
+   * Ficam de fora:
+   * - `/admin` e `/static`, que vão para o Django com a barra intacta
+   *   (`redirects()` roda ANTES de `rewrites()`);
+   * - `/_next`, os arquivos do próprio Next.
+   *
+   * A raiz `/` não casa: o `.+` exige ao menos um caractere antes da barra.
+   * A query string segue junto no redirecionamento.
+   */
+  async redirects() {
+    return [
+      {
+        source: "/:caminho((?!admin(?:/|$)|static/|_next/).+)/",
+        destination: "/:caminho",
+        permanent: true,
+      },
+    ];
+  },
+
+  /**
+   * O Django Admin abre também pelo endereço deste site (decisão 8.6 do PRD
+   * Técnico). Assim o cookie de sessão do login fica gravado AQUI, e as
+   * páginas da Área da equipe (`/equipe/...`) passam a enxergá-lo. Quem
+   * autentica e autoriza continua sendo o Django.
+   *
+   * `/api/*` fica de fora de propósito: o navegador continua sem falar com a
+   * API. Quem a chama é o servidor do Next (`lib/api.ts`).
+   */
+  async rewrites() {
+    return [
+      { source: "/admin", destination: `${API_INTERNA}/admin/` },
+      // A regra COM barra vem antes, e não é redundante: o `:caminho*` não
+      // devolve a barra final no destino. Sem ela, `/admin/login/` chegaria
+      // ao Django como `/admin/login`, e o Admin responderia com um redirect
+      // para o próprio login (conferido no spike, backend#24).
+      { source: "/admin/:caminho*/", destination: `${API_INTERNA}/admin/:caminho*/` },
+      { source: "/admin/:caminho*", destination: `${API_INTERNA}/admin/:caminho*` },
+      // CSS, JS e imagens do Admin (STATIC_URL do Django). A `public/` deste
+      // projeto só tem `brand/`, então não há conflito.
+      { source: "/static/:caminho*", destination: `${API_INTERNA}/static/:caminho*` },
+    ];
+  },
+
   images: {
     remotePatterns: [
       // Supabase Storage (produção e homologação). O `**` cobre qualquer

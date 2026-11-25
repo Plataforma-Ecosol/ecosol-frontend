@@ -24,21 +24,18 @@ function comSufixoAdmin(url: string): string {
 /**
  * Endereço do Django Admin, para o link discreto "Área da equipe" no rodapé.
  *
- * O backend fica em outro domínio, então não há como montar esse endereço a
- * partir de `ENDERECO_DO_SITE`. `ADMIN_URL` existe para permitir um endereço
- * de admin diferente do da API pública (um subdomínio próprio, por exemplo);
- * na ausência dela, o padrão é `/admin/` a partir de `API_URL_PUBLICA` — a
- * mesma variável que já resolve o endereço de mídia alcançável pelo
- * navegador, com a mesma cadeia de fallback dela (`API_URL`, depois
- * `localhost:8001`) — porque cobre o compose e o local sem exigir
- * configuração nova. String vazia (o valor de um `ARG` do Docker sem
+ * O padrão é o `/admin/` DESTE site: o `next.config.ts` repassa esse caminho
+ * ao Django, e só o login feito por aqui grava o cookie de sessão no endereço
+ * do site, onde a Área da equipe (`/equipe/...`) o enxerga (decisão 8.6 do
+ * PRD Técnico). Apontar para o endereço do backend faria a pessoa logar num
+ * domínio cuja sessão o site não vê.
+ *
+ * `ADMIN_URL` continua valendo para sobrescrever, se um dia o Admin ganhar
+ * endereço próprio. String vazia (o valor de um `ARG` do Docker sem
  * `--build-arg`) conta como "não definida".
  */
 export const ENDERECO_DA_AREA_DA_EQUIPE = comSufixoAdmin(
-  process.env.ADMIN_URL ||
-    process.env.API_URL_PUBLICA ||
-    process.env.API_URL ||
-    "http://localhost:8001",
+  process.env.ADMIN_URL || ENDERECO_DO_SITE,
 );
 
 /** Monta um endereço absoluto a partir de um caminho interno. */
