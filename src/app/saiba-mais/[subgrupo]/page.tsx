@@ -1,12 +1,12 @@
-import { ArrowLeft } from "lucide-react";
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { ConteudoCasaAzul } from "@/componentes/saiba-mais/ConteudoCasaAzul";
 import { ConteudoEconomiaSolidaria } from "@/componentes/saiba-mais/ConteudoEconomiaSolidaria";
 import { ConteudoItesIfrj } from "@/componentes/saiba-mais/ConteudoItesIfrj";
+import { NavegacaoDosSubgrupos } from "@/componentes/saiba-mais/NavegacaoDosSubgrupos";
+import { TrilhaDoSaibaMais } from "@/componentes/saiba-mais/TrilhaDoSaibaMais";
 import { CASA } from "@/lib/casa";
 import {
   buscarSubgrupo,
@@ -71,19 +71,16 @@ export default async function PaginaDoSubgrupo({ params }: Props) {
 
   return (
     <article className="space-y-10">
-      <header className="space-y-2">
-        {/* Volta simples para a índice. O frontend#73 troca por breadcrumb e abas. */}
-        <Link
-          href="/saiba-mais"
-          className="inline-flex min-h-11 items-center gap-1 font-semibold text-azul underline-offset-4 hover:underline"
-        >
-          <ArrowLeft aria-hidden className="size-4" />
-          Saiba mais
-        </Link>
-        {/* Na Casa, o nome oficial, e não o apelido: o leitor de tela anuncia
-            o que a página é. */}
-        <h1 className="text-3xl font-bold text-azul">{daCasa ? CASA.nome : dados.nome}</h1>
-        {daCasa && CASA.subtitulo && <p className="text-lg text-texto">{CASA.subtitulo}</p>}
+      {/* Ordem do foco igual à visual: trilha, pílulas, conteúdo. */}
+      <header className="space-y-3">
+        <TrilhaDoSaibaMais atual={dados.slug} />
+        <div className="space-y-2">
+          {/* Na Casa, o nome oficial, e não o apelido: o leitor de tela anuncia
+              o que a página é. */}
+          <h1 className="text-3xl font-bold text-azul">{daCasa ? CASA.nome : dados.nome}</h1>
+          {daCasa && CASA.subtitulo && <p className="text-lg text-texto">{CASA.subtitulo}</p>}
+        </div>
+        <NavegacaoDosSubgrupos atual={dados.slug} />
       </header>
 
       <Conteudo />
