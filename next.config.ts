@@ -43,7 +43,34 @@ const nextConfig: NextConfig = {
   // O Django Admin exige barra no fim (`/admin/login/`). O padrão do Next é
   // tirar essa barra com um 308, e o Django devolve um 301 para pô-la de volta:
   // laço infinito. Sem o redirecionamento do Next, a barra chega ao Django.
+  //
+  // A opção vale para o site inteiro, não só para `/admin`. Por isso o
+  // redirecionamento é recriado em `redirects()` logo abaixo, só para o resto.
   skipTrailingSlashRedirect: true,
+
+  /**
+   * Devolve o 308 que o `skipTrailingSlashRedirect` desligou: `/saiba-mais/`
+   * vai para `/saiba-mais`. Sem isso, toda página responde com e sem a barra,
+   * e as que não têm `canonical` (`/coletivos`, `/eventos`, `/mapa`) ficam com
+   * dois endereços para o buscador (RNF20).
+   *
+   * Ficam de fora:
+   * - `/admin` e `/static`, que vão para o Django com a barra intacta
+   *   (`redirects()` roda ANTES de `rewrites()`);
+   * - `/_next`, os arquivos do próprio Next.
+   *
+   * A raiz `/` não casa: o `.+` exige ao menos um caractere antes da barra.
+   * A query string segue junto no redirecionamento.
+   */
+  async redirects() {
+    return [
+      {
+        source: "/:caminho((?!admin(?:/|$)|static/|_next/).+)/",
+        destination: "/:caminho",
+        permanent: true,
+      },
+    ];
+  },
 
   /**
    * O Django Admin abre também pelo endereço deste site (decisão 8.6 do PRD
