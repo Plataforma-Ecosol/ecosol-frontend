@@ -1,9 +1,9 @@
 /**
- * A página "Saiba mais" mostra o contato da Casa — e só o que foi confirmado.
+ * A página índice do "Saiba mais": um cartão por subgrupo e o contato curto.
  *
- * Os dados vêm de `lib/casa.ts`, trocado aqui por um objeto que cada teste
- * pode esvaziar. É assim que se prova a regra que mais importa: campo ausente
- * some inteiro, com ícone e rótulo, sem deixar "Telefone:" sozinho na tela.
+ * O contato curto existe para os links antigos `/saiba-mais#contato`. Sem o
+ * `id`, eles abririam a página no topo, sem o contato — este teste impede que
+ * ele suma sem ninguém perceber.
  */
 import { render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -20,39 +20,52 @@ vi.mock("@/lib/casa", async (importOriginal) => ({
   },
 }));
 
-const { default: SaibaMais } = await import("@/app/saiba-mais/page");
-
-/** Só o nome — o mínimo que a página aceita. */
-const SO_O_NOME: Casa = { nome: REAL.nome };
+const { default: SaibaMais, metadata } = await import("@/app/saiba-mais/page");
 
 beforeEach(() => {
   dados.casa = { ...REAL };
 });
 
-function renderizar() {
-  return render(<SaibaMais />);
-}
+describe("Saiba mais — índice", () => {
+  it("o h1 é 'Saiba mais'", () => {
+    render(<SaibaMais />);
 
-function contato() {
-  const secao = document.getElementById("contato");
-  expect(secao).not.toBeNull();
-  const endereco = secao?.querySelector("address");
-  expect(endereco).not.toBeNull();
-  return endereco as HTMLElement;
-}
-
-describe("Saiba mais — com os dados confirmados", () => {
-  it("o h1 é o nome da Casa, e não o nome da aba", () => {
-    renderizar();
-
-    expect(
-      screen.getByRole("heading", { level: 1, name: "Casa da Economia Solidária Paul Singer" }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1, name: "Saiba mais" })).toBeInTheDocument();
   });
 
-  it("os contatos ficam num <address> dentro do bloco #contato", () => {
-    renderizar();
-    const caixa = within(contato());
+  it("tem um cartão para cada subgrupo, na ordem, com o nome como link", () => {
+    render(<SaibaMais />);
+
+    const cartoes = screen.getAllByRole("listitem");
+    const links = cartoes.map((cartao) => within(cartao).getByRole("link"));
+    expect(links.map((link) => [link.textContent, link.getAttribute("href")])).toEqual([
+      ["Casa Azul", "/saiba-mais/casa-azul"],
+      ["Economia Solidária", "/saiba-mais/economia-solidaria"],
+      ["ITES/IFRJ", "/saiba-mais/ites-ifrj"],
+    ]);
+  });
+
+  it("cada cartão expõe um link só, e o resumo fica fora do nome dele", () => {
+    render(<SaibaMais />);
+
+    for (const cartao of screen.getAllByRole("listitem")) {
+      expect(within(cartao).getAllByRole("link")).toHaveLength(1);
+    }
+    expect(screen.getByRole("link", { name: "Casa Azul" })).toBeInTheDocument();
+  });
+
+  it("canônico próprio", () => {
+    expect(metadata.alternates?.canonical).toBe("/saiba-mais");
+  });
+});
+
+describe("Saiba mais — contato curto (#contato)", () => {
+  it("existe, com telefone, e-mail e o caminho para o contato completo", () => {
+    render(<SaibaMais />);
+
+    const secao = document.getElementById("contato");
+    expect(secao).not.toBeNull();
+    const caixa = within(secao as HTMLElement);
 
     expect(caixa.getByRole("link", { name: "(21) 2717-8350" })).toHaveAttribute(
       "href",
@@ -63,212 +76,31 @@ describe("Saiba mais — com os dados confirmados", () => {
       "mailto:coordenaecosol@gmail.com",
     );
     expect(
-      caixa.getByRole("link", { name: "@casapaulsinger (abre em nova aba)" }),
-    ).toHaveAttribute("href", "https://www.instagram.com/casapaulsinger/");
-    expect(caixa.getByRole("link", { name: "Facebook (abre em nova aba)" })).toHaveAttribute(
-      "href",
-      "https://www.facebook.com/economiasolidaria.niteroirj/",
-    );
-
-    const mapa = caixa.getByRole("link", { name: "Ver no mapa (abre em nova aba)" });
-    expect(mapa.getAttribute("href")).toMatch(/^https:\/\/www\.google\.com\/maps\/search\//);
-    expect(mapa).toHaveAttribute("target", "_blank");
+      caixa.getByRole("link", { name: "Endereço, horário e redes sociais" }),
+    ).toHaveAttribute("href", "/saiba-mais/casa-azul#contato");
   });
 
-  it("os links externos abrem em nova aba sem passar o `opener`", () => {
-    renderizar();
+  it("não é o contato oficial: nenhum <address> na índice", () => {
+    const { container } = render(<SaibaMais />);
 
-    for (const link of screen.getAllByRole("link", { name: /abre em nova aba/ })) {
-      expect(link).toHaveAttribute("target", "_blank");
-      expect(link).toHaveAttribute("rel", "noopener noreferrer");
-    }
+    expect(container.querySelector("address")).toBeNull();
   });
 
-  it("o horário aparece em duas linhas", () => {
-    renderizar();
-
-    const horario = screen.getByText(/Segunda a sexta-feira/);
-    expect(horario).toHaveClass("whitespace-pre-line");
-    expect(horario.textContent).toContain("das 10h às 16h\nPara cadastros, até as 17h");
-  });
-
-  it("o primeiro botão de contato é o cheio, e os outros são contorno", () => {
-    renderizar();
-    const caixa = within(contato());
-
-    expect(caixa.getByRole("link", { name: "coordenaecosol@gmail.com" })).toHaveAttribute(
-      "data-variant",
-      "default",
-    );
-    expect(
-      caixa.getByRole("link", { name: "@casapaulsinger (abre em nova aba)" }),
-    ).toHaveAttribute("data-variant", "outline");
-    expect(caixa.getByRole("link", { name: "Facebook (abre em nova aba)" })).toHaveAttribute(
-      "data-variant",
-      "outline",
-    );
-  });
-
-  it("os botões da Rede levam aos coletivos e à agenda", () => {
-    renderizar();
-
-    expect(screen.getByRole("link", { name: "Conheça os coletivos" })).toHaveAttribute(
-      "href",
-      "/coletivos",
-    );
-    expect(screen.getByRole("link", { name: "Veja a agenda" })).toHaveAttribute(
-      "href",
-      "/eventos",
-    );
-  });
-
-  it("o ITES aparece por extenso, com o endereço do campus fora do contato da Casa", () => {
-    renderizar();
-
-    expect(
-      screen.getByText(/Incubadora Tecnológica de Empreendimentos Solidários/),
-    ).toBeInTheDocument();
-    const ites = screen.getByText(/Estr\. Washington Luís, 1596/);
-    expect(contato()).not.toContainElement(ites);
-  });
-});
-
-describe("Saiba mais — WhatsApp", () => {
-  it("entra entre o e-mail e o Instagram", () => {
-    dados.casa = { ...REAL, whatsapp: "5521999990000" };
-    renderizar();
-
-    const botoes = within(contato())
-      .getAllByRole("listitem")
-      .map((item) => item.textContent);
-    expect(botoes).toEqual([
-      "coordenaecosol@gmail.com",
-      "WhatsApp (abre em nova aba)",
-      "@casapaulsinger (abre em nova aba)",
-      "Facebook (abre em nova aba)",
-    ]);
-    expect(screen.getByRole("link", { name: "WhatsApp (abre em nova aba)" })).toHaveAttribute(
-      "href",
-      "https://wa.me/5521999990000",
-    );
-  });
-});
-
-describe("Saiba mais — dado ausente não aparece", () => {
-  it("sem telefone, WhatsApp, redes e horário, nada deles na tela", () => {
-    dados.casa = { nome: REAL.nome, email: REAL.email, endereco: REAL.endereco };
-    const { container } = renderizar();
-
-    expect(container.querySelector('a[href^="tel:"]')).toBeNull();
-    expect(container.querySelector('a[href*="wa.me"]')).toBeNull();
-    expect(container.querySelector(".lucide-phone")).toBeNull();
-    expect(container.querySelector(".lucide-clock")).toBeNull();
-    expect(screen.queryByText(/Telefone:/)).toBeNull();
-    expect(screen.queryByText(/Horário de atendimento:/)).toBeNull();
-    expect(screen.queryByRole("link", { name: /Facebook/ })).toBeNull();
-    expect(screen.queryByRole("link", { name: /@casapaulsinger/ })).toBeNull();
-    expect(screen.queryByRole("button", { name: "Copiar" })).toBeNull();
-  });
-
-  it("sem e-mail, o primeiro contato presente ganha o botão cheio", () => {
-    dados.casa = { ...REAL, email: undefined };
-    renderizar();
-
-    expect(
-      screen.getByRole("link", { name: "@casapaulsinger (abre em nova aba)" }),
-    ).toHaveAttribute("data-variant", "default");
-  });
-
-  it("sem texto, sem o título: nenhum 'Quem somos' na tela", () => {
-    dados.casa = { ...REAL, quem_somos: undefined };
-    renderizar();
-
-    expect(screen.queryByRole("heading", { name: "Quem somos" })).toBeNull();
-  });
-
-  it("com o texto, o 'Quem somos' aparece, com os parágrafos preservados", () => {
-    renderizar();
-
-    expect(screen.getByRole("heading", { name: "Quem somos" })).toBeInTheDocument();
-    const texto = screen.getByText(/Centro Público de Referência em Economia Solidária de Niterói/);
-    expect(texto).toHaveClass("whitespace-pre-line");
-    expect(texto.textContent).toContain("\n\n");
-  });
-
-  it("sem o texto da Rede, os botões continuam", () => {
-    dados.casa = { ...REAL, sobre_a_rede: undefined };
-    renderizar();
-
-    expect(screen.queryByText(/reúne coletivos/)).toBeNull();
-    expect(screen.getByRole("link", { name: "Conheça os coletivos" })).toBeInTheDocument();
-  });
-
-  it("só com o telefone de exibir, ele aparece sem link, e o JSON-LD publica o mesmo número", () => {
-    dados.casa = { nome: REAL.nome, telefone: REAL.telefone };
-    const { container } = renderizar();
-
-    expect(within(contato()).getByText("(21) 2717-8350")).toBeInTheDocument();
-    expect(container.querySelector('a[href^="tel:"]')).toBeNull();
-    const script = container.querySelector('script[type="application/ld+json"]');
-    expect(JSON.parse(script?.textContent ?? "")).toHaveProperty("telephone", "(21) 2717-8350");
-  });
-
-  it("só com o telefone de discar, nada de telefone na página nem no JSON-LD", () => {
-    dados.casa = { nome: REAL.nome, telefone_discagem: REAL.telefone_discagem };
-    const { container } = renderizar();
-
-    expect(document.getElementById("contato")).toBeNull();
-    const script = container.querySelector('script[type="application/ld+json"]');
-    expect(JSON.parse(script?.textContent ?? "")).not.toHaveProperty("telephone");
-  });
-
-  it("sem nenhum contato, o bloco some com o título", () => {
-    dados.casa = SO_O_NOME;
-    renderizar();
+  it("sem nenhum contato, o bloco some, e os cartões continuam", () => {
+    dados.casa = { nome: REAL.nome };
+    render(<SaibaMais />);
 
     expect(document.getElementById("contato")).toBeNull();
     expect(screen.queryByRole("heading", { name: "Fale com a Casa" })).toBeNull();
-    // A Rede continua com os botões: quem chegou aqui precisa de um caminho.
-    expect(screen.getByRole("link", { name: "Conheça os coletivos" })).toBeInTheDocument();
-  });
-});
-
-describe("Saiba mais — JSON-LD", () => {
-  function jsonLd(container: HTMLElement) {
-    const script = container.querySelector('script[type="application/ld+json"]');
-    expect(script).not.toBeNull();
-    return JSON.parse(script?.textContent ?? "");
-  }
-
-  it("é JSON válido, com os dados da Casa", () => {
-    const { container } = renderizar();
-    const dadosEstruturados = jsonLd(container);
-
-    expect(dadosEstruturados).toMatchObject({
-      "@context": "https://schema.org",
-      "@type": "Organization",
-      name: REAL.nome,
-      telephone: "+552127178350",
-      email: "coordenaecosol@gmail.com",
-      address: REAL.endereco,
-      sameAs: [
-        "https://www.instagram.com/casapaulsinger/",
-        "https://www.facebook.com/economiasolidaria.niteroirj/",
-      ],
-    });
+    expect(screen.getAllByRole("listitem")).toHaveLength(3);
   });
 
-  it("não tem chave vazia quando falta dado", () => {
-    dados.casa = SO_O_NOME;
-    const { container } = renderizar();
-    const dadosEstruturados = jsonLd(container);
+  it("só com o e-mail, nada de telefone", () => {
+    dados.casa = { nome: REAL.nome, email: REAL.email };
+    const { container } = render(<SaibaMais />);
 
-    for (const [chave, valor] of Object.entries(dadosEstruturados)) {
-      expect(valor, chave).not.toBeUndefined();
-      expect(valor, chave).not.toBe("");
-      expect(valor, chave).not.toEqual([]);
-    }
-    expect(dadosEstruturados).not.toHaveProperty("telephone");
-    expect(dadosEstruturados).not.toHaveProperty("sameAs");
+    expect(container.querySelector('a[href^="tel:"]')).toBeNull();
+    expect(screen.queryByRole("button", { name: "Copiar" })).toBeNull();
+    expect(screen.getByRole("link", { name: "coordenaecosol@gmail.com" })).toBeInTheDocument();
   });
 });
