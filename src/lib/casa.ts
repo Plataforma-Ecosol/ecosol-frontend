@@ -99,10 +99,12 @@ export function telefoneDaCasa(
 }
 
 /**
- * Se a página "Saiba mais" tem o bloco "Fale com a Casa" (`#contato`).
+ * Se o "Saiba mais" tem o bloco "Fale com a Casa" (`#contato`): o completo, na
+ * página da Casa Azul, e o curto, na página índice.
  *
- * O link do rodapé usa a mesma função: sem o bloco, ele aponta para a página,
- * e não para uma âncora que não existe.
+ * O link do rodapé usa a mesma função (por `caminhoDoContato`, em
+ * `lib/saiba-mais.ts`): sem o bloco, ele aponta para a página, e não para uma
+ * âncora que não existe.
  */
 export function temContato(casa: Casa): boolean {
   return Boolean(

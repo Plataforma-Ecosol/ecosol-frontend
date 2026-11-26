@@ -12,7 +12,8 @@ import Link from "next/link";
 
 import Logo from "@/componentes/Logo";
 import { NavegacaoPrincipal } from "@/componentes/NavegacaoPrincipal";
-import { CASA, temContato } from "@/lib/casa";
+import { CASA } from "@/lib/casa";
+import { caminhoDoContato } from "@/lib/saiba-mais";
 import {
   ENDERECO_DA_AREA_DA_EQUIPE,
   ENDERECO_DO_SITE,
@@ -101,8 +102,9 @@ export default function RootLayout({
                 Economia Solidária (Casa Paul Singer), em parceria com o ITES e o
                 IFRJ Campus Niterói.{" "}
                 <Link
-                  // Sem o bloco de contato, a âncora não existiria: vai para a página.
-                  href={temContato(CASA) ? "/saiba-mais#contato" : "/saiba-mais"}
+                  // Direto ao contato completo, na página da Casa Azul. Sem o
+                  // bloco de contato, vai só para a página (`caminhoDoContato`).
+                  href={caminhoDoContato(CASA)}
                   className="text-bege/80 underline hover:text-bege"
                 >
                   Fale com a Casa

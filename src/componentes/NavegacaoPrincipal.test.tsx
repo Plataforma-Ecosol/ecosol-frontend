@@ -72,6 +72,18 @@ describe("NavegacaoPrincipal — página atual", () => {
     }
   });
 
+  it("marca o Saiba mais também na página de um subgrupo, e só ele", () => {
+    rotaAtual.mockReturnValue("/saiba-mais/casa-azul");
+    render(<NavegacaoPrincipal />);
+
+    for (const link of links("Saiba mais")) {
+      expect(link).toHaveAttribute("aria-current", "true");
+    }
+    for (const link of [...links("Coletivos"), ...links("Agenda"), ...links("Mapa")]) {
+      expect(link).not.toHaveAttribute("aria-current");
+    }
+  });
+
   it("não marca nada na home", () => {
     rotaAtual.mockReturnValue("/");
     const { container } = render(<NavegacaoPrincipal />);
