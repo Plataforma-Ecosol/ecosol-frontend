@@ -1,19 +1,22 @@
-import { ArrowLeft } from "lucide-react";
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { ConteudoCasaAzul } from "@/componentes/saiba-mais/ConteudoCasaAzul";
 import { ConteudoEconomiaSolidaria } from "@/componentes/saiba-mais/ConteudoEconomiaSolidaria";
 import { ConteudoItesIfrj } from "@/componentes/saiba-mais/ConteudoItesIfrj";
+import { NavegacaoDosSubgrupos } from "@/componentes/saiba-mais/NavegacaoDosSubgrupos";
+import { TrilhaDoSaibaMais } from "@/componentes/saiba-mais/TrilhaDoSaibaMais";
 import { CASA } from "@/lib/casa";
 import {
   buscarSubgrupo,
   caminhoDoSubgrupo,
+  secoesDoSubgrupo,
   SUBGRUPOS,
   type SlugDoSubgrupo,
 } from "@/lib/saiba-mais";
+import { IMAGEM_DE_COMPARTILHAMENTO } from "@/lib/site";
+import type { SecaoDoSaibaMais } from "@/tipos/api";
 
 type Props = {
   // Promise desde o Next 15, e obrigatoriamente aguardado a partir do 16.
@@ -33,21 +36,35 @@ export function generateStaticParams() {
 }
 
 /**
- * Título e canônico próprios. A descrição própria e a entrada no sitemap
- * chegam no frontend#76; até lá vale a descrição padrão do layout.
+ * Título, descrição e canônico próprios, e a prévia de link com o subgrupo.
+ *
+ * Declarar `openGraph` aqui substitui o do layout por inteiro, imagem
+ * inclusive: sem `IMAGEM_DE_COMPARTILHAMENTO`, o link colado no WhatsApp
+ * sairia sem imagem.
  */
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { subgrupo } = await params;
   const dados = buscarSubgrupo(subgrupo);
   if (!dados) return {};
 
+  const canonico = caminhoDoSubgrupo(dados.slug);
   return {
     title: dados.nome,
-    alternates: { canonical: caminhoDoSubgrupo(dados.slug) },
+    description: dados.descricao,
+    alternates: { canonical: canonico },
+    openGraph: {
+      title: dados.nome,
+      description: dados.descricao,
+      url: canonico,
+      type: "website",
+      images: [IMAGEM_DE_COMPARTILHAMENTO],
+    },
   };
 }
 
-const CONTEUDO: Record<SlugDoSubgrupo, () => ReactNode> = {
+type PropsDoConteudo = { secoes: SecaoDoSaibaMais[] | null };
+
+const CONTEUDO: Record<SlugDoSubgrupo, (props: PropsDoConteudo) => ReactNode> = {
   "casa-azul": ConteudoCasaAzul,
   "economia-solidaria": ConteudoEconomiaSolidaria,
   "ites-ifrj": ConteudoItesIfrj,
@@ -56,9 +73,10 @@ const CONTEUDO: Record<SlugDoSubgrupo, () => ReactNode> = {
 /**
  * A página de um subgrupo do "Saiba mais".
  *
- * **Estática, sem chamada à API.** O conteúdo de cada subgrupo é o que a
- * antiga página única mostrava, só mudado de lugar (ver
- * `docs/PRD/PRD_Saiba_Mais_Rotas_e_Indice_v1.md`).
+ * **Estática, com ISR de 5 minutos.** Os textos vêm das seções publicadas no
+ * Admin (`GET /api/saiba-mais/`). No build sem backend, a página sai com o
+ * conteúdo fixo; com o site no ar, uma falha da API mantém a última versão
+ * boa. Ver `secoesDoSubgrupo` e `docs/PRD/PRD_Saiba_Mais_Conteudo_da_API_v1.md`.
  */
 export default async function PaginaDoSubgrupo({ params }: Props) {
   const { subgrupo } = await params;
@@ -66,27 +84,25 @@ export default async function PaginaDoSubgrupo({ params }: Props) {
   // Não acontece com `dynamicParams = false`; fica por segurança.
   if (!dados) notFound();
 
+  const secoes = await secoesDoSubgrupo(dados.slug);
   const Conteudo = CONTEUDO[dados.slug];
   const daCasa = dados.slug === "casa-azul";
 
   return (
     <article className="space-y-10">
-      <header className="space-y-2">
-        {/* Volta simples para a índice. O frontend#73 troca por breadcrumb e abas. */}
-        <Link
-          href="/saiba-mais"
-          className="inline-flex min-h-11 items-center gap-1 font-semibold text-azul underline-offset-4 hover:underline"
-        >
-          <ArrowLeft aria-hidden className="size-4" />
-          Saiba mais
-        </Link>
-        {/* Na Casa, o nome oficial, e não o apelido: o leitor de tela anuncia
-            o que a página é. */}
-        <h1 className="text-3xl font-bold text-azul">{daCasa ? CASA.nome : dados.nome}</h1>
-        {daCasa && CASA.subtitulo && <p className="text-lg text-texto">{CASA.subtitulo}</p>}
+      {/* Ordem do foco igual à visual: trilha, pílulas, conteúdo. */}
+      <header className="space-y-3">
+        <TrilhaDoSaibaMais atual={dados.slug} />
+        <div className="space-y-2">
+          {/* Na Casa, o nome oficial, e não o apelido: o leitor de tela anuncia
+              o que a página é. */}
+          <h1 className="text-3xl font-bold text-azul">{daCasa ? CASA.nome : dados.nome}</h1>
+          {daCasa && CASA.subtitulo && <p className="text-lg text-texto">{CASA.subtitulo}</p>}
+        </div>
+        <NavegacaoDosSubgrupos atual={dados.slug} />
       </header>
 
-      <Conteudo />
+      <Conteudo secoes={secoes} />
     </article>
   );
 }

@@ -57,3 +57,27 @@ describe("Economia Solidária", () => {
     expect(screen.getByRole("link", { name: "Conheça os coletivos" })).toBeInTheDocument();
   });
 });
+
+describe("Economia Solidária — com as seções do Admin", () => {
+  const secao = {
+    id: 1, slug: "a-rede", subgrupo: "economia-solidaria",
+    titulo: "Título vindo do Admin", texto: "Texto vindo do Admin.",
+    imagem: null, imagem_descricao: "", atualizado_em: "2026-11-20T10:00:00-03:00",
+  };
+
+  it("mostra as seções no lugar do texto fixo, e os botões continuam", () => {
+    render(<ConteudoEconomiaSolidaria secoes={[secao]} />);
+
+    expect(screen.getByRole("heading", { name: "Título vindo do Admin" })).toBeInTheDocument();
+    expect(screen.queryByText(/reúne coletivos/)).toBeNull();
+    expect(screen.getByRole("link", { name: "Conheça os coletivos" })).toBeInTheDocument();
+  });
+
+  it("sem seção publicada, nem texto fixo nem seção: só os botões", () => {
+    render(<ConteudoEconomiaSolidaria secoes={[]} />);
+
+    expect(screen.queryByRole("heading")).toBeNull();
+    expect(screen.queryByText(/reúne coletivos/)).toBeNull();
+    expect(screen.getByRole("link", { name: "Veja a agenda" })).toBeInTheDocument();
+  });
+});

@@ -2,11 +2,13 @@ import { AtSign, Clock, ExternalLink, Globe, Mail, MapPin, MessageCircle, Phone 
 
 import { BotaoCopiar } from "@/componentes/BotaoCopiar";
 import { AvisoDeNovaAba, NOVA_ABA, type BotaoDeContato } from "@/componentes/saiba-mais/comum";
+import { SecoesDoSaibaMais } from "@/componentes/saiba-mais/SecoesDoSaibaMais";
 import { Button } from "@/componentes/ui/button";
 import { CASA, telefoneDaCasa, temContato, urlDoMapa, urlDoWhatsapp } from "@/lib/casa";
 import { arrobaDoInstagram, urlDoInstagram } from "@/lib/contatos";
 import { caminhoDoSubgrupo } from "@/lib/saiba-mais";
 import { urlAbsoluta } from "@/lib/site";
+import type { SecaoDoSaibaMais } from "@/tipos/api";
 
 /**
  * Os dados da Casa em JSON-LD, para o Google mostrar telefone e endereço na
@@ -34,13 +36,16 @@ function dadosEstruturados() {
 /**
  * O subgrupo "Casa Azul": quem é a Casa Paul Singer e como falar com ela.
  *
- * **Estático, sem chamada à API.** Os dados moram em `lib/casa.ts`.
+ * O texto vem das seções publicadas no Admin. Com `secoes` nulo (API fora do
+ * ar no build), vale o "Quem somos" fixo de `lib/casa.ts`. O contato e o
+ * JSON-LD são dados da Casa, e não texto editorial: ficam fixos nos dois
+ * casos, lidos de `lib/casa.ts`.
  *
  * Mesma regra do perfil do coletivo: dado ausente some junto com o seu título,
  * ícone e rótulo. Assim a página vai ao ar com o que já estiver confirmado,
  * sem "a definir" na tela.
  */
-export function ConteudoCasaAzul() {
+export function ConteudoCasaAzul({ secoes = null }: { secoes?: SecaoDoSaibaMais[] | null }) {
   const instagram = CASA.instagram ? urlDoInstagram(CASA.instagram) : undefined;
 
   // Nesta ordem. O primeiro presente ganha o botão cheio, os outros são
@@ -85,6 +90,7 @@ export function ConteudoCasaAzul() {
   // coletivo não.
   const telefone = telefoneDaCasa(CASA);
   const contatoVisivel = temContato(CASA);
+  const temTexto = secoes ? secoes.length > 0 : Boolean(CASA.quem_somos);
 
   return (
     <>
@@ -102,19 +108,19 @@ export function ConteudoCasaAzul() {
           esta página no telefone quase sempre quer o contato. */}
       <div
         className={
-          CASA.quem_somos && contatoVisivel
-            ? "grid items-start gap-8 md:grid-cols-2"
-            : "space-y-8"
+          temTexto && contatoVisivel ? "grid items-start gap-8 md:grid-cols-2" : "space-y-8"
         }
       >
-        {CASA.quem_somos && (
-          <section className="space-y-3">
-            <h2 className="text-xl font-bold text-azul">Quem somos</h2>
-            <p className="text-lg leading-relaxed whitespace-pre-line text-texto">
-              {CASA.quem_somos}
-            </p>
-          </section>
-        )}
+        {secoes
+          ? secoes.length > 0 && <SecoesDoSaibaMais secoes={secoes} />
+          : CASA.quem_somos && (
+              <section className="space-y-3">
+                <h2 className="text-xl font-bold text-azul">Quem somos</h2>
+                <p className="text-lg leading-relaxed whitespace-pre-line text-texto">
+                  {CASA.quem_somos}
+                </p>
+              </section>
+            )}
 
         {contatoVisivel && (
           <section

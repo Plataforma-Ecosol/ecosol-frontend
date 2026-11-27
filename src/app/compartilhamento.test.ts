@@ -35,6 +35,9 @@ vi.mock("@/lib/api", () => ({
 
 const { generateMetadata: metadataDoColetivo } = await import("@/app/coletivos/[slug]/page");
 const { generateMetadata: metadataDoEvento } = await import("@/app/eventos/[slug]/page");
+const { generateMetadata: metadataDoSubgrupo } = await import(
+  "@/app/saiba-mais/[subgrupo]/page"
+);
 
 const params = Promise.resolve({ slug: "qualquer" });
 
@@ -62,5 +65,13 @@ describe("prévia de link", () => {
     buscarEvento.mockResolvedValue(evento([{ id: 1, imagem: cartaz, legenda: "", ordem: 0 }]));
 
     expect(imagens(await metadataDoEvento({ params }))).toEqual([cartaz]);
+  });
+
+  it("a página de um subgrupo do Saiba mais leva a logo da Casa", async () => {
+    const metadata = await metadataDoSubgrupo({
+      params: Promise.resolve({ subgrupo: "ites-ifrj" }),
+    });
+
+    expect(imagens(metadata)).toEqual(["/opengraph-image.png"]);
   });
 });

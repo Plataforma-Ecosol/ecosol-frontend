@@ -54,6 +54,13 @@ describe("Saiba mais — índice", () => {
     expect(screen.getByRole("link", { name: "Casa Azul" })).toBeInTheDocument();
   });
 
+  it("não tem trilha nem pílulas: os cartões já são a navegação", () => {
+    render(<SaibaMais />);
+
+    expect(screen.queryByRole("navigation", { name: "Trilha de navegação" })).toBeNull();
+    expect(screen.queryByRole("navigation", { name: "Subgrupos do Saiba mais" })).toBeNull();
+  });
+
   it("canônico próprio", () => {
     expect(metadata.alternates?.canonical).toBe("/saiba-mais");
   });

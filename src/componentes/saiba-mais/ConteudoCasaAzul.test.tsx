@@ -241,3 +241,40 @@ describe("Casa Azul — JSON-LD", () => {
     expect(dadosEstruturados).not.toHaveProperty("sameAs");
   });
 });
+
+/** A grade de duas colunas (texto e contato lado a lado) a partir do `md`. */
+const GRADE = '[class~="md:grid-cols-2"]';
+
+describe("Casa Azul — com as seções do Admin", () => {
+  const secao = {
+    id: 1, slug: "quem-somos", subgrupo: "casa-azul",
+    titulo: "Quem somos, pelo Admin", texto: "Texto vindo do Admin.",
+    imagem: null, imagem_descricao: "", atualizado_em: "2026-11-20T10:00:00-03:00",
+  };
+
+  it("mostra as seções no lugar do 'Quem somos' fixo, ao lado do contato", () => {
+    const { container } = render(<ConteudoCasaAzul secoes={[secao]} />);
+
+    expect(screen.getByRole("heading", { name: "Quem somos, pelo Admin" })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Quem somos" })).toBeNull();
+    expect(container.querySelector(GRADE)).not.toBeNull();
+    expect(document.getElementById("contato")).not.toBeNull();
+  });
+
+  it("sem seção publicada, fica só o contato, sem o texto fixo", () => {
+    const { container } = render(<ConteudoCasaAzul secoes={[]} />);
+
+    expect(screen.queryByRole("heading", { name: "Quem somos" })).toBeNull();
+    expect(screen.getByRole("heading", { name: "Fale com a Casa" })).toBeInTheDocument();
+    // Uma coluna só: sem texto, a grade deixaria metade da largura vazia.
+    expect(container.querySelector(GRADE)).toBeNull();
+  });
+
+  it("o JSON-LD da Casa continua, com ou sem a API", () => {
+    for (const secoes of [[secao], [], null]) {
+      const { container, unmount } = render(<ConteudoCasaAzul secoes={secoes} />);
+      expect(container.querySelector('script[type="application/ld+json"]')).not.toBeNull();
+      unmount();
+    }
+  });
+});

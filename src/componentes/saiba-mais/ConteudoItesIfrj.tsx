@@ -1,17 +1,30 @@
 import { ExternalLink, MapPin } from "lucide-react";
 
 import { AvisoDeNovaAba, NOVA_ABA } from "@/componentes/saiba-mais/comum";
+import { SecoesDoSaibaMais } from "@/componentes/saiba-mais/SecoesDoSaibaMais";
+import type { SecaoDoSaibaMais } from "@/tipos/api";
 
 /** Endereço do ITES, no IFRJ Campus Niterói. Crédito do projeto, não contato da Casa. */
 const ENDERECO_DO_ITES = "Estr. Washington Luís, 1596 - Sapê, Niterói - RJ, 24315-375";
 
 /**
- * O subgrupo "ITES/IFRJ": quem faz a plataforma.
+ * O subgrupo "ITES/IFRJ": as seções do Admin e quem faz a plataforma.
  *
- * Crédito do projeto e da licença, e não dado da Casa: fica fixo aqui mesmo
- * quando o resto passar a vir do Admin, e sem `<address>`.
+ * O bloco "Quem faz a plataforma" é crédito do projeto e da licença, e não
+ * texto editorial: fica fixo, com ou sem a API, e sem `<address>`. As seções
+ * publicadas no Admin vêm antes dele. Com `secoes` nulo (API fora do ar no
+ * build), só o bloco fixo, como antes.
  */
-export function ConteudoItesIfrj() {
+export function ConteudoItesIfrj({ secoes = null }: { secoes?: SecaoDoSaibaMais[] | null }) {
+  return (
+    <div className="space-y-8">
+      {secoes && secoes.length > 0 && <SecoesDoSaibaMais secoes={secoes} />}
+      <QuemFazAPlataforma />
+    </div>
+  );
+}
+
+function QuemFazAPlataforma() {
   return (
     <section className="space-y-3">
       <h2 className="text-xl font-bold text-azul">Quem faz a plataforma</h2>

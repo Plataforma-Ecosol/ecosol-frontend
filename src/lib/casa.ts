@@ -42,13 +42,17 @@ export const CASA: Casa = {
   nome: "Casa da Economia Solidária Paul Singer",
   // Os dois textos são os rascunhos do PRD, publicados antes da aprovação da
   // Casa Azul por decisão do Jean (13/10). Se a Casa pedir mudança, é aqui.
+  //
+  // Desde o frontend#75, são a reserva do build sem API: o site mostra as
+  // seções do Admin. Precisam dizer o mesmo que elas (frontend#74). Quem
+  // desenvolve a plataforma é a ITES, sozinha; a Casa Azul dá o feedback.
   quem_somos:
     "A Casa da Economia Solidária Paul Singer é o Centro Público de Referência " +
     "em Economia Solidária de Niterói. É aqui que coletivos, feiras e " +
     "empreendimentos da economia solidária da cidade encontram apoio, formação " +
     "e espaço para se organizar.\n\n" +
-    "A Casa mantém esta plataforma para que qualquer pessoa conheça os coletivos " +
-    "da rede, acompanhe a agenda de eventos e saiba onde encontrar a economia " +
+    "Nesta plataforma, qualquer pessoa pode conhecer os coletivos da rede, " +
+    "acompanhar a agenda de eventos e saber onde encontrar a economia " +
     "solidária em Niterói.",
   sobre_a_rede:
     "A Rede de Economia Solidária de Niterói reúne coletivos que trabalham de " +
