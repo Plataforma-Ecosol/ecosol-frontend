@@ -6,15 +6,31 @@
  * Aqui se prova que cada slug mostra o bloco certo, e só ele.
  */
 import { render, screen, within } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import PaginaDoSubgrupo, {
+import type { SecaoDoSaibaMais } from "@/tipos/api";
+
+// A busca das seções é testada em `lib/saiba-mais.test.ts`. Aqui ela devolve
+// `null` (o conteúdo fixo) por padrão, e cada teste pode trocar.
+const secoesDoSubgrupo = vi.hoisted(() => vi.fn());
+vi.mock("@/lib/saiba-mais", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/saiba-mais")>()),
+  secoesDoSubgrupo: (slug: string) => secoesDoSubgrupo(slug),
+}));
+
+const {
+  default: PaginaDoSubgrupo,
   dynamicParams,
   generateMetadata,
   generateStaticParams,
-} from "@/app/saiba-mais/[subgrupo]/page";
-import { SUBGRUPOS } from "@/lib/saiba-mais";
-import { IMAGEM_DE_COMPARTILHAMENTO } from "@/lib/site";
+} = await import("@/app/saiba-mais/[subgrupo]/page");
+const { SUBGRUPOS } = await import("@/lib/saiba-mais");
+const { IMAGEM_DE_COMPARTILHAMENTO } = await import("@/lib/site");
+
+beforeEach(() => {
+  secoesDoSubgrupo.mockReset();
+  secoesDoSubgrupo.mockResolvedValue(null);
+});
 
 async function renderizar(subgrupo: string) {
   return render(await PaginaDoSubgrupo({ params: Promise.resolve({ subgrupo }) }));
@@ -94,6 +110,33 @@ describe("Saiba mais — rotas dos subgrupos", () => {
       expect(tiposDeJsonLd(outra.container)).toEqual(["BreadcrumbList"]);
       outra.unmount();
     }
+  });
+
+  it.each(["casa-azul", "economia-solidaria", "ites-ifrj"])(
+    "%s mostra as seções que a API devolve para ele",
+    async (subgrupo) => {
+      const secao: SecaoDoSaibaMais = {
+        id: 1, slug: "s", subgrupo, titulo: `Seção do Admin em ${subgrupo}`,
+        texto: "Texto.", imagem: null, imagem_descricao: "",
+        atualizado_em: "2026-11-20T10:00:00-03:00",
+      };
+      secoesDoSubgrupo.mockResolvedValue([secao]);
+
+      await renderizar(subgrupo);
+
+      expect(secoesDoSubgrupo).toHaveBeenCalledWith(subgrupo);
+      expect(
+        screen.getByRole("heading", { level: 2, name: `Seção do Admin em ${subgrupo}` }),
+      ).toBeInTheDocument();
+    },
+  );
+
+  it("a falha da API fora do build sobe, para o Next manter a última página boa", async () => {
+    secoesDoSubgrupo.mockRejectedValue(new Error("API fora do ar"));
+
+    await expect(
+      PaginaDoSubgrupo({ params: Promise.resolve({ subgrupo: "casa-azul" }) }),
+    ).rejects.toThrow("API fora do ar");
   });
 
   it("a Economia Solidária leva aos coletivos e à agenda", async () => {

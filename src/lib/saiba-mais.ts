@@ -9,7 +9,11 @@
  *
  * Ver `docs/PRD/PRD_Saiba_Mais_Rotas_e_Indice_v1.md`.
  */
+import { PHASE_PRODUCTION_BUILD } from "next/constants";
+
+import { buscarSaibaMais } from "@/lib/api";
 import { temContato, type Casa } from "@/lib/casa";
+import type { SecaoDoSaibaMais } from "@/tipos/api";
 
 /** Os mesmos valores de `SecaoSaibaMais.Subgrupo` no backend. */
 export type SlugDoSubgrupo = "casa-azul" | "economia-solidaria" | "ites-ifrj";
@@ -85,4 +89,32 @@ export function caminhoDoSubgrupo(slug: SlugDoSubgrupo): string {
 export function caminhoDoContato(casa: Casa): string {
   const pagina = caminhoDoSubgrupo("casa-azul");
   return temContato(casa) ? `${pagina}#contato` : pagina;
+}
+
+/**
+ * As seções publicadas de um subgrupo, ou `null` para usar o conteúdo fixo.
+ *
+ * - **API no ar:** a lista do subgrupo, na ordem do Admin. Pode vir vazia, e
+ *   aí a página mostra só a parte fixa: é o que faz uma seção despublicada
+ *   sumir do site, inclusive a última.
+ * - **API fora do ar no `next build`:** `null`, e a página sai com o conteúdo
+ *   fixo. É o caso do CI, que não sobe backend.
+ * - **API fora do ar na revalidação, com o site no ar:** relança o erro. O
+ *   Next então continua servindo a última página gerada com sucesso e tenta
+ *   de novo na visita seguinte. Se devolvesse `null` aqui, o conteúdo fixo
+ *   substituiria o do Admin a cada queda, e uma seção despublicada poderia
+ *   reaparecer.
+ *
+ * Ver `docs/PRD/PRD_Saiba_Mais_Conteudo_da_API_v1.md`.
+ */
+export async function secoesDoSubgrupo(
+  slug: SlugDoSubgrupo,
+): Promise<SecaoDoSaibaMais[] | null> {
+  try {
+    const { subgrupos } = await buscarSaibaMais();
+    return subgrupos.find((subgrupo) => subgrupo.slug === slug)?.secoes ?? [];
+  } catch (erro) {
+    if (process.env.NEXT_PHASE === PHASE_PRODUCTION_BUILD) return null;
+    throw erro;
+  }
 }

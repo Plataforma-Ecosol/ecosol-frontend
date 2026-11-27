@@ -139,3 +139,32 @@ export interface PontoDeInteresse {
   criado_em: string;
   atualizado_em: string;
 }
+
+/**
+ * Seção do "Saiba mais", como o Admin a publica (`GET /api/saiba-mais/`).
+ *
+ * `texto` é texto simples, com parágrafos separados por linha em branco: sem
+ * HTML nem Markdown. `imagem` é URL absoluta ou `null`; com imagem, o backend
+ * exige `imagem_descricao`.
+ */
+export interface SecaoDoSaibaMais {
+  id: number;
+  slug: string;
+  subgrupo: string;
+  titulo: string;
+  texto: string;
+  imagem: string | null;
+  imagem_descricao: string;
+  atualizado_em: string;
+}
+
+/** Um subgrupo da listagem. Os três vêm sempre, mesmo com `secoes: []`. */
+export interface SubgrupoDoSaibaMais {
+  slug: string;
+  nome: string;
+  secoes: SecaoDoSaibaMais[];
+}
+
+export interface RespostaDoSaibaMais {
+  subgrupos: SubgrupoDoSaibaMais[];
+}

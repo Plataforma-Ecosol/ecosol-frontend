@@ -11,10 +11,12 @@ import { CASA } from "@/lib/casa";
 import {
   buscarSubgrupo,
   caminhoDoSubgrupo,
+  secoesDoSubgrupo,
   SUBGRUPOS,
   type SlugDoSubgrupo,
 } from "@/lib/saiba-mais";
 import { IMAGEM_DE_COMPARTILHAMENTO } from "@/lib/site";
+import type { SecaoDoSaibaMais } from "@/tipos/api";
 
 type Props = {
   // Promise desde o Next 15, e obrigatoriamente aguardado a partir do 16.
@@ -60,7 +62,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-const CONTEUDO: Record<SlugDoSubgrupo, () => ReactNode> = {
+type PropsDoConteudo = { secoes: SecaoDoSaibaMais[] | null };
+
+const CONTEUDO: Record<SlugDoSubgrupo, (props: PropsDoConteudo) => ReactNode> = {
   "casa-azul": ConteudoCasaAzul,
   "economia-solidaria": ConteudoEconomiaSolidaria,
   "ites-ifrj": ConteudoItesIfrj,
@@ -69,9 +73,10 @@ const CONTEUDO: Record<SlugDoSubgrupo, () => ReactNode> = {
 /**
  * A página de um subgrupo do "Saiba mais".
  *
- * **Estática, sem chamada à API.** O conteúdo de cada subgrupo é o que a
- * antiga página única mostrava, só mudado de lugar (ver
- * `docs/PRD/PRD_Saiba_Mais_Rotas_e_Indice_v1.md`).
+ * **Estática, com ISR de 5 minutos.** Os textos vêm das seções publicadas no
+ * Admin (`GET /api/saiba-mais/`). No build sem backend, a página sai com o
+ * conteúdo fixo; com o site no ar, uma falha da API mantém a última versão
+ * boa. Ver `secoesDoSubgrupo` e `docs/PRD/PRD_Saiba_Mais_Conteudo_da_API_v1.md`.
  */
 export default async function PaginaDoSubgrupo({ params }: Props) {
   const { subgrupo } = await params;
@@ -79,6 +84,7 @@ export default async function PaginaDoSubgrupo({ params }: Props) {
   // Não acontece com `dynamicParams = false`; fica por segurança.
   if (!dados) notFound();
 
+  const secoes = await secoesDoSubgrupo(dados.slug);
   const Conteudo = CONTEUDO[dados.slug];
   const daCasa = dados.slug === "casa-azul";
 
@@ -96,7 +102,7 @@ export default async function PaginaDoSubgrupo({ params }: Props) {
         <NavegacaoDosSubgrupos atual={dados.slug} />
       </header>
 
-      <Conteudo />
+      <Conteudo secoes={secoes} />
     </article>
   );
 }

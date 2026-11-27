@@ -29,6 +29,7 @@ import type {
   OpcoesDeFiltroDeEvento,
   Pagina,
   PontoDeInteresse,
+  RespostaDoSaibaMais,
 } from "@/tipos/api";
 
 /** Onde o SERVIDOR do Next encontra a API. Dentro do compose, `backend:8001`. */
@@ -256,6 +257,44 @@ export function listarPontos(filtros: FiltrosDePonto = {}) {
     filtros,
     REVALIDACAO_LISTAGEM,
   );
+}
+
+// --- Saiba mais -------------------------------------------------------------
+
+/** Sem resposta em 10 s, a API conta como fora do ar: um backend parado não segura o build. */
+const TEMPO_LIMITE_DO_SAIBA_MAIS = 10_000;
+
+/**
+ * As seções publicadas do "Saiba mais", agrupadas por subgrupo.
+ *
+ * NÃO usa `buscar()`, por dois motivos:
+ * - lá há `connection()`, que tornaria dinâmicas as páginas dos subgrupos, e
+ *   elas precisam continuar estáticas, com ISR;
+ * - lá um 404 vira `notFound()`, e a página do subgrupo cairia inteira.
+ *
+ * Lança em qualquer falha, inclusive resposta fora do contrato (sem a lista
+ * `subgrupos`). Quem decide o que fazer com a falha é `secoesDoSubgrupo`, em
+ * `lib/saiba-mais.ts`. Uma URL só, sem parâmetro: o ISR guarda uma entrada de
+ * cache, e as três páginas revalidam juntas.
+ */
+export async function buscarSaibaMais(): Promise<RespostaDoSaibaMais> {
+  const resposta = await fetch(montarUrl("/api/saiba-mais/"), {
+    next: { revalidate: REVALIDACAO_DETALHE },
+    signal: AbortSignal.timeout(TEMPO_LIMITE_DO_SAIBA_MAIS),
+  });
+
+  if (!resposta.ok) {
+    throw new ErroDaApi(
+      `A API respondeu ${resposta.status} para /api/saiba-mais/.`,
+      resposta.status,
+    );
+  }
+
+  const corpo = (await resposta.json()) as Partial<RespostaDoSaibaMais> | null;
+  if (!corpo || !Array.isArray(corpo.subgrupos)) {
+    throw new ErroDaApi("A resposta de /api/saiba-mais/ veio fora do contrato.", resposta.status);
+  }
+  return corpo as RespostaDoSaibaMais;
 }
 
 // --- Equipe -----------------------------------------------------------------

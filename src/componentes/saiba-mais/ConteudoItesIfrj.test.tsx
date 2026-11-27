@@ -31,3 +31,28 @@ describe("ITES/IFRJ", () => {
     expect(github).toHaveAttribute("rel", "noopener noreferrer");
   });
 });
+
+describe("ITES/IFRJ — com as seções do Admin", () => {
+  const secao = {
+    id: 1, slug: "a-ites", subgrupo: "ites-ifrj",
+    titulo: "A ITES", texto: "Texto vindo do Admin.",
+    imagem: null, imagem_descricao: "", atualizado_em: "2026-11-20T10:00:00-03:00",
+  };
+
+  it("as seções vêm antes do crédito, que continua fixo", () => {
+    render(<ConteudoItesIfrj secoes={[secao]} />);
+
+    expect(
+      screen.getAllByRole("heading", { level: 2 }).map((titulo) => titulo.textContent),
+    ).toEqual(["A ITES", "Quem faz a plataforma"]);
+    expect(screen.getByText(/Estr\. Washington Luís, 1596/)).toBeInTheDocument();
+  });
+
+  it("sem seção publicada, fica só o crédito", () => {
+    render(<ConteudoItesIfrj secoes={[]} />);
+
+    expect(
+      screen.getAllByRole("heading", { level: 2 }).map((titulo) => titulo.textContent),
+    ).toEqual(["Quem faz a plataforma"]);
+  });
+});
