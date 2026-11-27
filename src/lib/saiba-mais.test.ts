@@ -32,6 +32,23 @@ describe("SUBGRUPOS", () => {
     }
   });
 
+  it("cada descrição cabe no Google, é própria e não repete o resumo", () => {
+    // Até 160 caracteres é o que o Google costuma mostrar sem cortar.
+    for (const { descricao, resumo } of SUBGRUPOS) {
+      expect(descricao.trim()).not.toBe("");
+      expect(descricao.length).toBeLessThanOrEqual(160);
+      expect(descricao).not.toBe(resumo);
+    }
+    expect(new Set(SUBGRUPOS.map(({ descricao }) => descricao)).size).toBe(SUBGRUPOS.length);
+  });
+
+  it("nenhum texto divide com a Casa a autoria da plataforma", () => {
+    // A ITES desenvolve a plataforma sozinha; a Casa Azul consulta e aprova.
+    for (const { resumo, descricao } of SUBGRUPOS) {
+      expect(`${resumo} ${descricao}`).not.toMatch(/junto com a Casa|Casa mantém/i);
+    }
+  });
+
   it("os nomes são os rótulos do backend", () => {
     expect(SUBGRUPOS.map(({ nome }) => nome)).toEqual([
       "Casa Azul",

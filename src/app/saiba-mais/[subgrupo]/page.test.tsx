@@ -5,7 +5,7 @@
  * O conteúdo em si é testado nos componentes (`componentes/saiba-mais/`).
  * Aqui se prova que cada slug mostra o bloco certo, e só ele.
  */
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
 import PaginaDoSubgrupo, {
@@ -13,6 +13,8 @@ import PaginaDoSubgrupo, {
   generateMetadata,
   generateStaticParams,
 } from "@/app/saiba-mais/[subgrupo]/page";
+import { SUBGRUPOS } from "@/lib/saiba-mais";
+import { IMAGEM_DE_COMPARTILHAMENTO } from "@/lib/site";
 
 async function renderizar(subgrupo: string) {
   return render(await PaginaDoSubgrupo({ params: Promise.resolve({ subgrupo }) }));
@@ -39,15 +41,33 @@ describe("Saiba mais — rotas dos subgrupos", () => {
     ["casa-azul", "Casa da Economia Solidária Paul Singer"],
     ["economia-solidaria", "Economia Solidária"],
     ["ites-ifrj", "ITES/IFRJ"],
-  ])("%s tem o h1 certo e o link de volta para a índice", async (subgrupo, titulo) => {
+  ])("%s tem o h1 certo e a trilha de volta para a índice", async (subgrupo, titulo) => {
     await renderizar(subgrupo);
 
     expect(screen.getByRole("heading", { level: 1, name: titulo })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Saiba mais" })).toHaveAttribute(
+    const trilha = screen.getByRole("navigation", { name: "Trilha de navegação" });
+    expect(within(trilha).getByRole("link", { name: "Saiba mais" })).toHaveAttribute(
       "href",
       "/saiba-mais",
     );
   });
+
+  it.each(["casa-azul", "economia-solidaria", "ites-ifrj"])(
+    "%s tem a trilha e as pílulas, com nomes diferentes do menu principal",
+    async (subgrupo) => {
+      await renderizar(subgrupo);
+
+      const nomes = screen
+        .getAllByRole("navigation")
+        .map((nav) => nav.getAttribute("aria-label"));
+      expect(nomes).toEqual(["Trilha de navegação", "Subgrupos do Saiba mais"]);
+      expect(nomes).not.toContain("Principal");
+
+      const pilulas = screen.getByRole("navigation", { name: "Subgrupos do Saiba mais" });
+      const atual = within(pilulas).getByRole("link", { current: "page" });
+      expect(atual).toHaveAttribute("href", `/saiba-mais/${subgrupo}`);
+    },
+  );
 
   it("na Casa Azul, o h1 é o nome oficial, e não o apelido", async () => {
     await renderizar("casa-azul");
@@ -55,16 +75,23 @@ describe("Saiba mais — rotas dos subgrupos", () => {
     expect(screen.queryByRole("heading", { level: 1, name: "Casa Azul" })).toBeNull();
   });
 
-  it("só a Casa Azul tem o contato e o JSON-LD", async () => {
+  it("só a Casa Azul tem o contato e o JSON-LD da Organization; todos têm o da trilha", async () => {
+    /** Os `@type` dos JSON-LD da página, na ordem do HTML. */
+    function tiposDeJsonLd(container: HTMLElement) {
+      return [...container.querySelectorAll('script[type="application/ld+json"]')].map(
+        (script) => JSON.parse(script.textContent ?? "")["@type"],
+      );
+    }
+
     const { container, unmount } = await renderizar("casa-azul");
     expect(document.getElementById("contato")).not.toBeNull();
-    expect(container.querySelector('script[type="application/ld+json"]')).not.toBeNull();
+    expect(tiposDeJsonLd(container).sort()).toEqual(["BreadcrumbList", "Organization"]);
     unmount();
 
     for (const subgrupo of ["economia-solidaria", "ites-ifrj"]) {
       const outra = await renderizar(subgrupo);
       expect(document.getElementById("contato")).toBeNull();
-      expect(outra.container.querySelector('script[type="application/ld+json"]')).toBeNull();
+      expect(tiposDeJsonLd(outra.container)).toEqual(["BreadcrumbList"]);
       outra.unmount();
     }
   });
@@ -103,6 +130,23 @@ describe("Saiba mais — metadados dos subgrupos", () => {
     expect(metadados.title).toBe(titulo);
     expect(metadados.alternates?.canonical).toBe(`/saiba-mais/${subgrupo}`);
   });
+
+  it.each(SUBGRUPOS.map((subgrupo) => [subgrupo.slug, subgrupo]))(
+    "%s tem descrição própria e prévia de link com o subgrupo",
+    async (slug, { nome, descricao }) => {
+      const metadados = await generateMetadata({
+        params: Promise.resolve({ subgrupo: slug as string }),
+      });
+
+      expect(metadados.description).toBe(descricao);
+      expect(metadados.openGraph).toMatchObject({
+        title: nome,
+        description: descricao,
+        url: `/saiba-mais/${slug}`,
+        images: [IMAGEM_DE_COMPARTILHAMENTO],
+      });
+    },
+  );
 
   it("slug desconhecido não ganha metadados", async () => {
     expect(await generateMetadata({ params: Promise.resolve({ subgrupo: "x" }) })).toEqual({});
