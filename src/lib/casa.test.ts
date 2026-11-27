@@ -9,6 +9,19 @@ import { describe, expect, it } from "vitest";
 
 import { CASA, telefoneDaCasa, temContato, urlDoMapa, urlDoWhatsapp } from "@/lib/casa";
 
+describe("autoria da plataforma", () => {
+  it("nenhum texto da Casa divide com ela a autoria da plataforma", () => {
+    // A ITES desenvolve a plataforma sozinha; a Casa Azul dá o feedback. Estes
+    // textos são a reserva do build sem API e precisam dizer o mesmo que o
+    // Admin (frontend#74).
+    for (const texto of [CASA.quem_somos, CASA.sobre_a_rede, CASA.subtitulo]) {
+      expect(texto ?? "").not.toMatch(
+        /junto com a Casa|Casa (mantém|desenvolve)|mantida pela Casa|desenvolvida pela Casa/i,
+      );
+    }
+  });
+});
+
 describe("urlDoMapa", () => {
   it("codifica acentos e vírgulas", () => {
     const url = urlDoMapa("Av. Ernani do Amaral Peixoto, 901 - Centro, Niterói - RJ");
