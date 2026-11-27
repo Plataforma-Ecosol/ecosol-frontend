@@ -14,6 +14,7 @@ import {
   SUBGRUPOS,
   type SlugDoSubgrupo,
 } from "@/lib/saiba-mais";
+import { IMAGEM_DE_COMPARTILHAMENTO } from "@/lib/site";
 
 type Props = {
   // Promise desde o Next 15, e obrigatoriamente aguardado a partir do 16.
@@ -33,17 +34,29 @@ export function generateStaticParams() {
 }
 
 /**
- * Título e canônico próprios. A descrição própria e a entrada no sitemap
- * chegam no frontend#76; até lá vale a descrição padrão do layout.
+ * Título, descrição e canônico próprios, e a prévia de link com o subgrupo.
+ *
+ * Declarar `openGraph` aqui substitui o do layout por inteiro, imagem
+ * inclusive: sem `IMAGEM_DE_COMPARTILHAMENTO`, o link colado no WhatsApp
+ * sairia sem imagem.
  */
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { subgrupo } = await params;
   const dados = buscarSubgrupo(subgrupo);
   if (!dados) return {};
 
+  const canonico = caminhoDoSubgrupo(dados.slug);
   return {
     title: dados.nome,
-    alternates: { canonical: caminhoDoSubgrupo(dados.slug) },
+    description: dados.descricao,
+    alternates: { canonical: canonico },
+    openGraph: {
+      title: dados.nome,
+      description: dados.descricao,
+      url: canonico,
+      type: "website",
+      images: [IMAGEM_DE_COMPARTILHAMENTO],
+    },
   };
 }
 

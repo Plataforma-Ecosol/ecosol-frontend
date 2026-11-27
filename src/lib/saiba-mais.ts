@@ -20,30 +20,50 @@ export type Subgrupo = {
   nome: string;
   /** Uma frase para o cartão da página índice. */
   resumo: string;
+  /**
+   * A descrição da página no Google e na prévia de link, com até 160
+   * caracteres. Não é o `resumo`: aqui a frase aparece sozinha, sem a índice
+   * em volta, e precisa dizer quem é e onde fica.
+   */
+  descricao: string;
 };
 
 /**
  * Nesta ordem na página índice e na navegação.
  *
- * Os resumos são rascunhos, para validar com a Casa Azul junto com os textos
- * do conteúdo inicial (frontend#74). Só descrevem o que já está em cada
- * página, sem informação nova.
+ * Os resumos e as descrições são rascunhos, para validar com a Casa Azul junto
+ * com os textos do conteúdo inicial (frontend#74). Só descrevem o que já está
+ * em cada página, sem informação nova.
+ *
+ * Quem desenvolve a plataforma é a ITES, sozinha; a Casa Azul é consultada e
+ * aprova as mudanças. Texto daqui não divide a autoria com a Casa.
  */
 export const SUBGRUPOS: readonly Subgrupo[] = [
   {
     slug: "casa-azul",
     nome: "Casa Azul",
     resumo: "Quem somos, contato, endereço e horário de atendimento da Casa Paul Singer.",
+    // Sem listar telefone e e-mail: um dado que sai de `lib/casa.ts` some da
+    // página (`temContato`), e a descrição continuaria prometendo.
+    descricao:
+      "A Casa da Economia Solidária Paul Singer é o centro público de referência " +
+      "da economia solidária em Niterói. Conheça a Casa e saiba como falar com ela.",
   },
   {
     slug: "economia-solidaria",
     nome: "Economia Solidária",
     resumo: "O que é a economia solidária e como funciona a rede de Niterói.",
+    descricao:
+      "O que é a economia solidária e como funciona a Rede de Economia Solidária " +
+      "de Niterói, com seus coletivos, feiras e eventos.",
   },
   {
     slug: "ites-ifrj",
     nome: "ITES/IFRJ",
     resumo: "A incubadora do IFRJ Campus Niterói que desenvolve esta plataforma.",
+    descricao:
+      "A ITES, Incubadora Tecnológica de Empreendimentos Solidários do IFRJ " +
+      "Campus Niterói, é quem desenvolve esta plataforma.",
   },
 ];
 

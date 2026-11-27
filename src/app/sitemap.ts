@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 
 import { listarColetivos, listarEventos } from "@/lib/api";
+import { caminhoDoSubgrupo, SUBGRUPOS } from "@/lib/saiba-mais";
 import { urlAbsoluta } from "@/lib/site";
 import type { Pagina } from "@/tipos/api";
 
@@ -73,6 +74,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: urlAbsoluta("/eventos"), changeFrequency: "daily", priority: 0.9 },
     { url: urlAbsoluta("/mapa"), changeFrequency: "weekly", priority: 0.8 },
     { url: urlAbsoluta("/saiba-mais"), changeFrequency: "monthly", priority: 0.5 },
+    // Da lista `SUBGRUPOS`: subgrupo novo entra sem ninguém lembrar. Sem
+    // `lastModified`, como as outras fixas — inventar a data faria o buscador
+    // achar que a página muda a cada geração.
+    ...SUBGRUPOS.map(({ slug }) => ({
+      url: urlAbsoluta(caminhoDoSubgrupo(slug)),
+      changeFrequency: "monthly" as const,
+      priority: 0.5,
+    })),
   ];
 
   return [

@@ -13,6 +13,8 @@ import PaginaDoSubgrupo, {
   generateMetadata,
   generateStaticParams,
 } from "@/app/saiba-mais/[subgrupo]/page";
+import { SUBGRUPOS } from "@/lib/saiba-mais";
+import { IMAGEM_DE_COMPARTILHAMENTO } from "@/lib/site";
 
 async function renderizar(subgrupo: string) {
   return render(await PaginaDoSubgrupo({ params: Promise.resolve({ subgrupo }) }));
@@ -128,6 +130,23 @@ describe("Saiba mais — metadados dos subgrupos", () => {
     expect(metadados.title).toBe(titulo);
     expect(metadados.alternates?.canonical).toBe(`/saiba-mais/${subgrupo}`);
   });
+
+  it.each(SUBGRUPOS.map((subgrupo) => [subgrupo.slug, subgrupo]))(
+    "%s tem descrição própria e prévia de link com o subgrupo",
+    async (slug, { nome, descricao }) => {
+      const metadados = await generateMetadata({
+        params: Promise.resolve({ subgrupo: slug as string }),
+      });
+
+      expect(metadados.description).toBe(descricao);
+      expect(metadados.openGraph).toMatchObject({
+        title: nome,
+        description: descricao,
+        url: `/saiba-mais/${slug}`,
+        images: [IMAGEM_DE_COMPARTILHAMENTO],
+      });
+    },
+  );
 
   it("slug desconhecido não ganha metadados", async () => {
     expect(await generateMetadata({ params: Promise.resolve({ subgrupo: "x" }) })).toEqual({});
