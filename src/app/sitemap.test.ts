@@ -70,7 +70,21 @@ describe("sitemap", () => {
       "http://localhost:3000/eventos",
       "http://localhost:3000/mapa",
       "http://localhost:3000/saiba-mais",
+      "http://localhost:3000/saiba-mais/casa-azul",
+      "http://localhost:3000/saiba-mais/economia-solidaria",
+      "http://localhost:3000/saiba-mais/ites-ifrj",
     ]);
+  });
+
+  it("os subgrupos do Saiba mais entram sem data de modificação inventada", async () => {
+    const mapa = await sitemap();
+    const subgrupos = mapa.filter((e) => e.url.includes("/saiba-mais/"));
+
+    expect(subgrupos).toHaveLength(3);
+    for (const entrada of subgrupos) {
+      expect(entrada.lastModified).toBeUndefined();
+      expect(entrada).toMatchObject({ changeFrequency: "monthly", priority: 0.5 });
+    }
   });
 
   it("percorre TODAS as páginas da API, não só a primeira", async () => {
